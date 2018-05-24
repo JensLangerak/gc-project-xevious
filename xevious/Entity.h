@@ -7,8 +7,16 @@ class Entity
     public:
         Entity();
         virtual ~Entity();
+        
+        void draw(long thick);
+        void update(long thick);
 
-    protected:
+protected:
+    //mesh
+    
+    //location etc information
+    
+    //collision
 
     private:
 };
