@@ -1,6 +1,9 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Entity
 {
@@ -11,11 +14,14 @@ class Entity
         void draw(long thick);
         void update(long thick);
 
-protected:
+	protected:
     //mesh
     
     //location etc information
-    
+    glm::vec3 position;
+    glm::vec3 orientation;
+
+
     //collision
 
     private:
