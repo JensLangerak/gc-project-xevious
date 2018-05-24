@@ -11,24 +11,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// Library for loading .OBJ model
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 
+#include "models.h"
+#include "utils.h"
+#include "entity.h"
+
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-// Per-vertex data
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 normal;
-};
 
 bool checkShaderErrors(GLuint shader) {
 	// Check if the shader compiled successfully
@@ -146,69 +143,20 @@ int main(int argc, char** argv)
 
 
 	// Load vertices of model
-	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string err;
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "dragon.obj")) {
-		std::cerr << err << std::endl;
-		return EXIT_FAILURE;
-	}
 
-	std::vector<Vertex> vertices;
 
-	// Read triangle vertices from OBJ file
-	for (const auto& shape : shapes) {
-		for (const auto& index : shape.mesh.indices) {
-			Vertex vertex = {};
-
-			// Retrieve coordinates for vertex by index
-			vertex.pos = {
-				attrib.vertices[3 * index.vertex_index + 0],
-				attrib.vertices[3 * index.vertex_index + 1],
-				attrib.vertices[3 * index.vertex_index + 2]
-			};
-
-			// Retrieve components of normal by index
-			vertex.normal = {
-				attrib.normals[3 * index.normal_index + 0],
-				attrib.normals[3 * index.normal_index + 1],
-				attrib.normals[3 * index.normal_index + 2]
-			};
-
-			vertices.push_back(vertex);
-		}
-	}
+    if (!models::loadModels())
+    {
+     		std::cerr << "Program failed to load!" << std::endl;
+		return EXIT_FAILURE;   
+    }
     
-    // Create Vertex Buffer Object
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-	// Bind vertex data to shader inputs using their index (location)
-	// These bindings are stored in the Vertex Array Object
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glEnableVertexAttribArray(0);
-
-	// The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-	// The offset is different and the data should go to input 1 instead of 0
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-	glEnableVertexAttribArray(1);
-    
+  
     // Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
-
+    Entity player;
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
@@ -229,24 +177,8 @@ int main(int argc, char** argv)
 
 		glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, -0.05f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 proj = glm::perspective(45.0f, WIDTH / static_cast<float>(HEIGHT), 0.1f, 10.0f);
-		glm::mat4 model = glm::mat4();
-		glm::mat4 mvp = proj * view * model;
 
-		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-
-		// Set view position
-		//glUniform3fv(1, 1, glm::value_ptr(viewPos));
-
-		// Expose current time in shader uniform
-		//glUniform1f(3, static_cast<float>(glfwGetTime()));
-
-		// Bind vertex data
-		glBindVertexArray(vao);
-
-
-		// Execute draw command
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-        
+        player.draw(0, proj * view);
         
         
         
