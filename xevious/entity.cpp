@@ -32,7 +32,7 @@ void Entity::draw(long thick, glm::mat4 projView)
     glm::mat4 mvp = projView * model;
     
     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-
+    glUniform3fv(3, 1, glm::value_ptr(color));
 
     // Bind vertex data
     glBindVertexArray(models::vao);

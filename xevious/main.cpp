@@ -21,6 +21,7 @@
 #include "models.h"
 #include "utils.h"
 #include "entity.h"
+#include "camera.h"
 
 // Configuration
 const int WIDTH = 800;
@@ -87,6 +88,9 @@ std::string readFile(const std::string& path) {
 	return buffer.str();
 }
 
+Camera camera;
+Camera mainLight;
+
 int main(int argc, char** argv)
 {
  if (!glfwInit()) {
@@ -101,7 +105,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "X-Toon shader", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Xevious", nullptr, nullptr);
 	if (!window) {
 		std::cerr << "Failed to create OpenGL context!" << std::endl;
 		return EXIT_FAILURE;
@@ -117,52 +121,73 @@ int main(int argc, char** argv)
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);
     
-    // Load and compile vertex shader
-	std::string vertexShaderCode = readFile("shader.vert");
-	const char* vertexShaderCodePtr = vertexShaderCode.data();
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
-	glCompileShader(vertexShader);
-
+    
+    
+    GLuint mainProgram = glCreateProgram();
 	
-	if (!checkShaderErrors(vertexShader)) {
-		std::cerr << "Shader(s) failed to compile!" << std::endl;
-		return EXIT_FAILURE;
+
+	////////////////// Load and compile main shader program
+	{
+		std::string vertexShaderCode = readFile("shader.vert");
+		const char* vertexShaderCodePtr = vertexShaderCode.data();
+
+		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
+		glCompileShader(vertexShader);
+
+		std::string fragmentShaderCode = readFile("shader.frag");
+		const char* fragmentShaderCodePtr = fragmentShaderCode.data();
+
+		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
+		glCompileShader(fragmentShader);
+
+		if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
+			std::cerr << "Shader(s) failed to compile!" << std::endl;
+			std::cout << "Press enter to close."; getchar();
+			return EXIT_FAILURE;
+		}
+
+		// Combine vertex and fragment shaders into single shader program
+		glAttachShader(mainProgram, vertexShader);
+		glAttachShader(mainProgram, fragmentShader);
+		glLinkProgram(mainProgram);
+
+		if (!checkProgramErrors(mainProgram)) {
+			std::cerr << "Main program failed to link!" << std::endl;
+			std::cout << "Press enter to close."; getchar();
+			return EXIT_FAILURE;
+		}
 	}
-
-	// Combine vertex and fragment shaders into single shader program
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glLinkProgram(shaderProgram);
-
-	if (!checkProgramErrors(shaderProgram)) {
-		std::cerr << "Program failed to link!" << std::endl;
-		return EXIT_FAILURE;
-	}
-
 
 	// Load vertices of model
-
-
-
     if (!models::loadModels())
     {
-     		std::cerr << "Program failed to load!" << std::endl;
+        std::cerr << "Program failed to load!" << std::endl;
 		return EXIT_FAILURE;   
     }
     
-  
+    camera.aspect = WIDTH / (float)HEIGHT;
+	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
+	camera.forward  = -camera.position;
+    
+    
+    mainLight.aspect = WIDTH / (float)HEIGHT;
+	mainLight.position = glm::vec3(-10.f, 10.f, 8.9f);
+	mainLight.forward  = -mainLight.position;
+    
     // Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
     Entity player;
+    Entity other;
+    player.color = glm::vec3(1.,0.,0.);
+    other.color = glm::vec3(0.,1.,0.);
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
         
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
         //update();
         //checkCollisions();
         
@@ -170,17 +195,27 @@ int main(int argc, char** argv)
         
         
         // Bind the shader
-		glUseProgram(shaderProgram);
-
-		// Set model/view/projection matrix
-		glm::vec3 viewPos = glm::vec3(-0.8f, 0.7f, -0.5f);
-
-		glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, -0.05f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 proj = glm::perspective(45.0f, WIDTH / static_cast<float>(HEIGHT), 0.1f, 10.0f);
-
-        player.draw(0, proj * view);
+		glUseProgram(mainProgram);
+		updateCamera(camera); //misschien niet nodig
         
-        
+        glm::mat4 vp = camera.vpMatrix();
+
+	//	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+
+        glm::mat4 lightMVP = mainLight.vpMatrix();
+        glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
+  
+        // Set view position
+		glUniform3fv(glGetUniformLocation(mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
+
+        glClearDepth(1.0f);  
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        player.draw(0,vp);
+        other.draw(0,vp);
+        other.position[0] += 0.001;
+        other.orientation[1] += 0.001;
         
         glfwSwapBuffers(window);
         //sleep();

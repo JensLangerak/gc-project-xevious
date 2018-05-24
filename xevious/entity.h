@@ -33,12 +33,15 @@ class Entity
         virtual void draw(long thick, glm::mat4 projView);
        // virtual void update(long thick);
 
+    glm::vec3 position;
+    glm::vec3 orientation;
+    glm::vec3 color; //tijdelijk (Denk ik)
+    
 	protected:
     //mesh
     
     //location etc information
-    glm::vec3 position;
-    glm::vec3 orientation;
+
 
 
     //collision

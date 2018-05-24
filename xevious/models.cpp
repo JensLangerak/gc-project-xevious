@@ -27,14 +27,15 @@ namespace models {
     GLuint vbo;
     GLuint vao;
     
-    bool loadModels() {
-        	tinyobj::attrib_t attrib;
-            	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string err;
+    bool loadModels() 
+    {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string err;
         if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "dragon.obj")) {
-		std::cerr << err << std::endl;
-		return false;
+            std::cerr << err << std::endl;
+            return false;
         }
 
         // Read triangle vertices from OBJ file
@@ -61,26 +62,26 @@ namespace models {
         }
         
           // Create Vertex Buffer Object
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, models::dragonVertices.size() * sizeof(Vertex), dragonVertices.data(), GL_STATIC_DRAW);
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, models::dragonVertices.size() * sizeof(Vertex), dragonVertices.data(), GL_STATIC_DRAW);
 
-	// Bind vertex data to shader inputs using their index (location)
-	// These bindings are stored in the Vertex Array Object
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+        // Bind vertex data to shader inputs using their index (location)
+        // These bindings are stored in the Vertex Array Object
+        glGenVertexArrays(1, &vao);
+        glBindVertexArray(vao);
 
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glEnableVertexAttribArray(0);
+        // The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+        // Stride is the distance in bytes between vertices
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+        glEnableVertexAttribArray(0);
 
-	// The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-	// The offset is different and the data should go to input 1 instead of 0
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-	glEnableVertexAttribArray(1);
+        // The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
+        // The offset is different and the data should go to input 1 instead of 0
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+        glEnableVertexAttribArray(1);
     
     
         return true;
