@@ -13,11 +13,20 @@
 #include "utils.h"
 
 namespace models {
-    extern std::vector<Vertex> dragonVertices;
-    extern GLuint vbo;
-    extern GLuint vao;
+    enum class ModelType{
+        Dragon
+    };
+    
+    struct Model {
+        std::vector<Vertex> vertices;
+        GLuint vbo;
+        GLuint vao;
+    };
+
+    extern Model dragon;
     
     bool loadModels();
+    void drawModel(ModelType model);
     
 }
 

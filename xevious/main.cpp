@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     
     
     
-    GLuint mainProgram = glCreateProgram();
+    globals::mainProgram = glCreateProgram();
 	
 
 	////////////////// Load and compile main shader program
@@ -149,11 +149,11 @@ int main(int argc, char** argv)
 		}
 
 		// Combine vertex and fragment shaders into single shader program
-		glAttachShader(mainProgram, vertexShader);
-		glAttachShader(mainProgram, fragmentShader);
-		glLinkProgram(mainProgram);
+		glAttachShader(globals::mainProgram, vertexShader);
+		glAttachShader(globals::mainProgram, fragmentShader);
+		glLinkProgram(globals::mainProgram);
 
-		if (!checkProgramErrors(mainProgram)) {
+		if (!checkProgramErrors(globals::mainProgram)) {
 			std::cerr << "Main program failed to link!" << std::endl;
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
@@ -181,8 +181,11 @@ int main(int argc, char** argv)
 
     Entity player;
     Entity other;
+    player.model = models::ModelType::Dragon;
     player.color = glm::vec3(1.,0.,0.);
     other.color = glm::vec3(0.,1.,0.);
+    other.model = models::ModelType::Dragon;
+    
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
@@ -195,7 +198,7 @@ int main(int argc, char** argv)
         
         
         // Bind the shader
-		glUseProgram(mainProgram);
+		glUseProgram(globals::mainProgram);
 		updateCamera(camera); //misschien niet nodig
         
         glm::mat4 vp = camera.vpMatrix();
@@ -203,10 +206,10 @@ int main(int argc, char** argv)
 	//	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
         glm::mat4 lightMVP = mainLight.vpMatrix();
-        glUniform3fv(glGetUniformLocation(mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
+        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
   
         // Set view position
-		glUniform3fv(glGetUniformLocation(mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
+		glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
 
         glClearDepth(1.0f);  
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);

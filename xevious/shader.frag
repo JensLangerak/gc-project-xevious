@@ -21,7 +21,7 @@ void main() {
     vec3 h = normalize(l + v);
     
     float ps = clamp(dot(fragNormal, h), 0, 1);
-vec3 specular =  vec3(1.0, 1.0, 1.0) * pow(ps , 16);
+    vec3 specular =  vec3(1.0, 1.0, 1.0) * pow(ps , 16);
     vec3 result = diffuse + specular;
 
     result = clamp(result, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));

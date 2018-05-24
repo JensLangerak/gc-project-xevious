@@ -1,6 +1,8 @@
 #include "entity.h"
 #include "models.h"
 #include <math.h>
+#include "utils.h"
+
 Entity::Entity()
 {
     //ctor
@@ -11,9 +13,9 @@ Entity::~Entity()
     //dtor
 }
 
-void Entity::draw(long thick, glm::mat4 projView)
+glm::mat4 Entity::getTransformationMatrix()
 {
-    double xRot = orientation[0]; //3 tand
+    double xRot = orientation[0];
     double yRot = orientation[1];
     double zRot = orientation[2];
     
@@ -29,16 +31,18 @@ void Entity::draw(long thick, glm::mat4 projView)
     model[2][2] = cos(xRot) * cos(yRot);
         
     model[3] = glm::vec4(position, 1.0);
-    glm::mat4 mvp = projView * model;
     
-    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniform3fv(3, 1, glm::value_ptr(color));
+    return model;
+}
 
-    // Bind vertex data
-    glBindVertexArray(models::vao);
-
-
-    // Execute draw command
-    glDrawArrays(GL_TRIANGLES, 0, models::dragonVertices.size());
+void Entity::draw(long thick, glm::mat4 projView)
+{
+    glm::mat4 mvp = projView * getTransformationMatrix();
     
+    glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+    glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(color));
+
+
+    models::drawModel(model);
+
 }

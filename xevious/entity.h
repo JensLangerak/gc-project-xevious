@@ -36,8 +36,12 @@ class Entity
     glm::vec3 position;
     glm::vec3 orientation;
     glm::vec3 color; //tijdelijk (Denk ik)
+    models::ModelType model;
+        
+protected:
+    glm::mat4 getTransformationMatrix();
+
     
-	protected:
     //mesh
     
     //location etc information
