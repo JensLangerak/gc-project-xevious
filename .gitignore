@@ -37,3 +37,4 @@
 */visual studio/*
 *.project
 *.workspace
+*/.codelite/*
