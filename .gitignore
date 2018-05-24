@@ -33,3 +33,5 @@
 
 *.layout
 *.vs
+
+*/visual studio/*
