@@ -35,3 +35,5 @@
 *.vs
 
 */visual studio/*
+*.project
+*.workspace
