@@ -14,7 +14,13 @@
 
 namespace models {
     enum class ModelType{
-        Dragon
+        Dragon,
+        Terrain
+    };
+    
+    enum class Textures{
+        None = -1,
+        Sand = 0
     };
     
     struct Model {
@@ -23,11 +29,11 @@ namespace models {
         GLuint vao;
     };
 
-    extern Model dragon;
-    
+    void activateTexture(Textures texture);
     bool loadModels();
+    bool loadTextures();
     void drawModel(ModelType model);
-    
+    void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ);
 }
 
 #endif

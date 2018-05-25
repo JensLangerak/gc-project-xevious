@@ -121,10 +121,9 @@ int main(int argc, char** argv)
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);
     
-    
-    
+
     globals::mainProgram = glCreateProgram();
-	
+    
 
 	////////////////// Load and compile main shader program
 	{
@@ -137,7 +136,7 @@ int main(int argc, char** argv)
 
 		std::string fragmentShaderCode = readFile("shader.frag");
 		const char* fragmentShaderCodePtr = fragmentShaderCode.data();
-
+ 
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
 		glCompileShader(fragmentShader);
@@ -147,33 +146,34 @@ int main(int argc, char** argv)
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
 		}
-
+                
 		// Combine vertex and fragment shaders into single shader program
 		glAttachShader(globals::mainProgram, vertexShader);
 		glAttachShader(globals::mainProgram, fragmentShader);
 		glLinkProgram(globals::mainProgram);
-
+    
 		if (!checkProgramErrors(globals::mainProgram)) {
 			std::cerr << "Main program failed to link!" << std::endl;
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
 		}
 	}
-
+    
 	// Load vertices of model
     if (!models::loadModels())
     {
         std::cerr << "Program failed to load!" << std::endl;
 		return EXIT_FAILURE;   
     }
-    
+
+    models::loadTextures();
     camera.aspect = WIDTH / (float)HEIGHT;
 	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
 	camera.forward  = -camera.position;
-    
+  
     
     mainLight.aspect = WIDTH / (float)HEIGHT;
-	mainLight.position = glm::vec3(-10.f, 10.f, 8.9f);
+	mainLight.position = glm::vec3(-30.f, 100.f, 10.f);
 	mainLight.forward  = -mainLight.position;
     
     // Enable depth testing
@@ -185,7 +185,12 @@ int main(int argc, char** argv)
     player.color = glm::vec3(1.,0.,0.);
     other.color = glm::vec3(0.,1.,0.);
     other.model = models::ModelType::Dragon;
+    models::generateTerrain(30, 30, 100, 100);
     
+    Entity terrain;
+    terrain.model = models::ModelType::Terrain;
+    terrain.texture = models::Textures::Sand;
+    terrain.position =  glm::vec3(0.,-10.,-10.);
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
@@ -195,7 +200,6 @@ int main(int argc, char** argv)
         //checkCollisions();
         
         //draw();
-        
         
         // Bind the shader
 		glUseProgram(globals::mainProgram);
@@ -217,9 +221,10 @@ int main(int argc, char** argv)
 
         player.draw(0,vp);
         other.draw(0,vp);
-        other.position[0] += 0.001;
-        other.orientation[1] += 0.001;
-        
+        other.position[0] += 0.0001;
+        other.orientation[1] += 0.01;
+
+        terrain.draw(0, vp);
         glfwSwapBuffers(window);
         //sleep();
         
