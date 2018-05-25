@@ -100,7 +100,7 @@ namespace models {
     
     bool loadModels() 
     {
-        bool result = loadModel(dragon, "dragon.obj");    
+        bool result = loadModel(dragon, "resources/dragon.obj");
     
         return result;
     }
@@ -142,7 +142,7 @@ namespace models {
     {
         textures.resize(1);
         textures[0]=0;
-        loadTexture((int) Textures::Sand, "sand.ppm");
+        loadTexture((int) Textures::Sand, "resources/sand.ppm");
         
         return true;
     }

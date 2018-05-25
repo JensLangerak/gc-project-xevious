@@ -127,14 +127,14 @@ int main(int argc, char** argv)
 
 	////////////////// Load and compile main shader program
 	{
-		std::string vertexShaderCode = readFile("shader.vert");
+		std::string vertexShaderCode = readFile("shaders/shader.vert");
 		const char* vertexShaderCodePtr = vertexShaderCode.data();
 
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
 		glCompileShader(vertexShader);
 
-		std::string fragmentShaderCode = readFile("shader.frag");
+		std::string fragmentShaderCode = readFile("shaders/shader.frag");
 		const char* fragmentShaderCodePtr = fragmentShaderCode.data();
  
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
