@@ -23,21 +23,24 @@
 #include "models.h"
 #include "utils.h"
 #include "entity.h"
+#include "bounding_box.h"
 
 class Entity
 {
-    public:
-        Entity();
-        virtual ~Entity();
-        
-        virtual void draw(long thick, glm::mat4 projView);
+public:
+    Entity();
+    virtual ~Entity();
+
+    virtual void draw(long thick, glm::mat4 projView);
        // virtual void update(long thick);
 
     glm::vec3 position;
     glm::vec3 orientation;
     glm::vec3 color; //tijdelijk (Denk ik)
     models::ModelType model;
-        
+
+    // Gameplay related
+    BoundingBox boundingBox;
 protected:
     glm::mat4 getTransformationMatrix();
 
@@ -49,8 +52,11 @@ protected:
 
 
     //collision
+    glm::vec2 get2DPosition();
+    BoundingBox getLocatedBoundingBox();
+    // @TODO: Add Collision check that only checks bounding boxes if collidable
 
-    private:
+private:
 };
 
 #endif // ENTITY_H

@@ -22,6 +22,8 @@ struct Vertex {
 
 namespace globals {
     extern GLuint mainProgram;
+    extern GLuint boundingBoxVBO;
+    extern GLuint boundingBoxVAO;
 }
 
 #endif

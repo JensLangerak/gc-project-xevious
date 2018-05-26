@@ -91,9 +91,79 @@ std::string readFile(const std::string& path) {
 Camera camera;
 Camera mainLight;
 
+void setupDebugging()
+{
+	// 1. Setup for drawing bounding
+	// Create VBO and VAO for boundingBox objects;
+	glCreateBuffers(1, &globals::boundingBoxVBO);
+	glGenVertexArrays(1, &globals::boundingBoxVAO);
+
+	// Set up Vertex array
+	glBindVertexArray(globals::boundingBoxVAO); 
+	
+	glBindBuffer(GL_ARRAY_BUFFER, globals::boundingBoxVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+	glEnableVertexAttribArray(0);
+
+	// @NOTE: Perhaps this can be completely removed
+	glBindBuffer(GL_ARRAY_BUFFER, globals::boundingBoxVBO);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	glEnableVertexAttribArray(1);
+
+	// Bind default buffer again
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// @TODO: Perhaps create a destroyDebugging() if necessary
+}
+
+
+//@TEST: Testing bounding box
+BoundingBox testBbox = BoundingBox(0.5, 0.5, 1.0, 1.0);
+BoundingBox testBbox2 = BoundingBox(0.5, 0.5, 1.0, 1.0);
+
+void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
+	// @TEST: Test moving bounding box1
+	if (key == GLFW_KEY_W)
+	{
+		testBbox.topLeft.y += 0.05;
+	}
+	else if (key == GLFW_KEY_A)
+	{
+		testBbox.topLeft.x -= 0.05;
+	}
+	else if (key == GLFW_KEY_S)
+	{
+		testBbox.topLeft.y -= 0.05;
+	}
+	else if (key == GLFW_KEY_D)
+	{
+		testBbox.topLeft.x += 0.05;
+	}
+
+	// @Test moving bounding box 2
+	if (key == GLFW_KEY_I)
+	{
+		testBbox2.topLeft.y += 0.05;
+	}
+	else if (key == GLFW_KEY_J)
+	{
+		testBbox2.topLeft.x -= 0.05;
+	}
+	else if (key == GLFW_KEY_K)
+	{
+		testBbox2.topLeft.y -= 0.05;
+	}
+	else if (key == GLFW_KEY_L)
+	{
+		testBbox2.topLeft.x += 0.05;
+	}
+}
+
 int main(int argc, char** argv)
 {
- if (!glfwInit()) {
+ 	if (!glfwInit()) {
 		std::cerr << "Failed to initialize GLFW!" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -111,6 +181,9 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
+	// Attach keyboard and mouse handlers
+	glfwSetKeyCallback(window, handleKeyboard);
+
 	// Activate the OpenGL context
 	glfwMakeContextCurrent(window);
 
@@ -119,12 +192,11 @@ int main(int argc, char** argv)
 	glewInit();
 
 	// Set up OpenGL debug callback
-	glDebugMessageCallback(debugCallback, nullptr);
-    
-    
+	glDebugMessageCallback(debugCallback, nullptr);    
     
     globals::mainProgram = glCreateProgram();
 	
+	setupDebugging();
 
 	////////////////// Load and compile main shader program
 	{
@@ -167,10 +239,10 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;   
     }
     
+    // @TODO: Change to top-down orthographic camera
     camera.aspect = WIDTH / (float)HEIGHT;
 	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
 	camera.forward  = -camera.position;
-    
     
     mainLight.aspect = WIDTH / (float)HEIGHT;
 	mainLight.position = glm::vec3(-10.f, 10.f, 8.9f);
@@ -185,11 +257,23 @@ int main(int argc, char** argv)
     player.color = glm::vec3(1.,0.,0.);
     other.color = glm::vec3(0.,1.,0.);
     other.model = models::ModelType::Dragon;
-    
+
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
-        
+    
+
+		// @NOTE: Update loop
+		{
+			// @NOTE: Should a "input-struct" be passed to the update functions / be globally defined?
+
+			// @TODO: Implement
+			// Iterate over entity list and update each entity;
+
+			// Delete entities marked dead
+
+			// @NOTE: Perhaps perform global update() if necessary
+		}
     
         //update();
         //checkCollisions();
@@ -219,6 +303,19 @@ int main(int argc, char** argv)
         other.draw(0,vp);
         other.position[0] += 0.001;
         other.orientation[1] += 0.001;
+
+        // @TEST: Draw bounding box
+        glm::vec3 hitColor = glm::vec3(0.0, 1.0, 1.0);
+        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
+        if (testBbox.checkIntersection(testBbox2))
+        {
+        	testBbox.draw(vp, hitColor);
+        	testBbox2.draw(vp, hitColor);	
+        } else 
+        {
+        	testBbox.draw(vp, normColor);
+        	testBbox2.draw(vp, normColor);	
+        }
         
         glfwSwapBuffers(window);
         //sleep();
