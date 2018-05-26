@@ -8,13 +8,15 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
+#include "bounding_box.h"
 
 #include "utils.h"
 
 namespace models {
     enum class ModelType{
-        Dragon
+        Dragon,
+        PlayerShip,
+        StarEnemy
     };
     
     struct Model {
@@ -24,10 +26,12 @@ namespace models {
     };
 
     extern Model dragon;
-    
+    extern Model playerShip;
+    extern Model starEnemy;
+
+    BoundingCube makeBoundingCube(std::vector<Vertex> vertices);
     bool loadModels();
     void drawModel(ModelType model);
-    
 }
 
 #endif

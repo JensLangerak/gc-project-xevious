@@ -20,11 +20,45 @@
 #include "models.h"
 
 #include "utils.h"
-
+#include <float.h>
+#include "bounding_box.h"
 
 namespace models {    
     Model dragon;
+    Model playerShip;
+    Model starEnemy;
     
+    BoundingCube makeBoundingCube(std::vector<Vertex> vertices)
+    {
+        // Find corner points (minX, minY, minZ, maxX, maxY, maxZ)
+        float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX;
+        float maxX = -FLT_MAX, maxY = -FLT_MAX, maxZ = -FLT_MAX;
+
+        for (int i = 0; i < vertices.size(); ++i)
+        {
+            glm::vec3 vertex = vertices[i].pos;
+            minX = fmin(minX, vertex.x);
+            minY = fmin(minY, vertex.y);
+            minZ = fmin(minZ, vertex.z);
+
+            maxX = fmax(maxX, vertex.x);
+            maxY = fmax(maxY, vertex.y);
+            maxZ = fmax(maxZ, vertex.z);
+        }
+
+        // Find farLowerLeft;
+        // @NOTE: Which coordinate would be most intuitive?
+        // y grows upwards from min
+        // x grows rightwards from left
+        // z grows .... from near
+        glm::vec3 farLowerLeft = glm::vec3(minX, minY, minZ);
+
+        // Calculate dimensions
+        glm::vec3 dims = glm::vec3(maxX - minX, maxY - minY, maxZ - minZ);
+
+        // Construct BoundingCube
+        return BoundingCube(farLowerLeft, dims);
+    }
     
     bool loadModel(Model &model, const char *filename)
     {
@@ -60,7 +94,7 @@ namespace models {
             }
         }
         
-          // Create Vertex Buffer Object
+        // Create Vertex Buffer Object
         glGenBuffers(1, &(model.vbo));
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(Vertex), model.vertices.data(), GL_STATIC_DRAW);
@@ -83,14 +117,20 @@ namespace models {
         glEnableVertexAttribArray(1);
     
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+        // @TODO: Generate bounding cube
+
         return true;
     }
     
     bool loadModels() 
     {
-        bool result = loadModel(dragon, "dragon.obj");    
+        bool result = loadModel(dragon, "dragon.obj"); 
+        bool result2 = loadModel(playerShip, "ship.obj");
+        bool result3 = loadModel(starEnemy, "starship.obj");   
     
-        return result;
+        return result && result2 && result3;
     }
     
     void drawModel(ModelType modelType)
@@ -98,8 +138,14 @@ namespace models {
         Model *model;
         switch(modelType) {
             case ModelType::Dragon:
-            default:
                 model = &dragon;
+                break;
+            case ModelType::PlayerShip:
+                model = &playerShip;
+                break;
+            case ModelType::StarEnemy:
+            default:
+                model = &starEnemy;
         }
     
         // Bind vertex data

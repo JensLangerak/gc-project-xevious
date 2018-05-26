@@ -27,6 +27,13 @@ Entity::~Entity()
 
 glm::mat4 Entity::getTransformationMatrix()
 {
+    // @NOTE(BUG): Assuming that a matrix is 0 by default
+    glm::mat4 scaleMatrix = glm::mat4();
+    scaleMatrix[0][0] = scale;
+    scaleMatrix[1][1] = scale;
+    scaleMatrix[2][2] = scale;
+    scaleMatrix[3][3] = 1.0;
+
     double xRot = orientation[0];
     double yRot = orientation[1];
     double zRot = orientation[2];
@@ -44,7 +51,7 @@ glm::mat4 Entity::getTransformationMatrix()
         
     model[3] = glm::vec4(position, 1.0);
     
-    return model;
+    return model * scaleMatrix;
 }
 
 void Entity::draw(long thick, glm::mat4 projView)

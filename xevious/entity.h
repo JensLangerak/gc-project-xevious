@@ -34,24 +34,27 @@ public:
     virtual void draw(long thick, glm::mat4 projView);
        // virtual void update(long thick);
 
+    // @NOTE: don't want all models to be of equal size, but scale might not be the right tool
+    float scale;
     glm::vec3 position;
     glm::vec3 orientation;
     glm::vec3 color; //tijdelijk (Denk ik)
     models::ModelType model;
 
     // Gameplay related
+    bool isCollidable;
+    BoundingCube boundingCube;
     BoundingBox boundingBox;
-protected:
+
     glm::mat4 getTransformationMatrix();
-
+protected:
+    // Mesh
     
-    //mesh
-    
-    //location etc information
+    // Location etc information
 
 
 
-    //collision
+    // Collision
     glm::vec2 get2DPosition();
     BoundingBox getLocatedBoundingBox();
     // @TODO: Add Collision check that only checks bounding boxes if collidable

@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "entity.h"
 #include "camera.h"
+#include "player_entity.h"
 
 // Configuration
 const int WIDTH = 800;
@@ -91,6 +92,9 @@ std::string readFile(const std::string& path) {
 Camera camera;
 Camera mainLight;
 
+// @TODO: Move to globals
+PlayerEntity player;
+
 void setupDebugging()
 {
 	// 1. Setup for drawing bounding
@@ -116,49 +120,31 @@ void setupDebugging()
 	// @TODO: Perhaps create a destroyDebugging() if necessary
 }
 
-
-//@TEST: Testing bounding box
-BoundingBox testBbox = BoundingBox(0.5, 0.5, 1.0, 1.0);
-BoundingBox testBbox2 = BoundingBox(0.5, 0.5, 1.0, 1.0);
-
 void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
 	// @TEST: Test moving bounding box1
 	if (key == GLFW_KEY_W)
 	{
-		testBbox.topLeft.y += 0.05;
+		// testBbox.topLeft.y += 0.05;
+		player.performAction(PlayerAction::MOVE_FORWARD);
 	}
 	else if (key == GLFW_KEY_A)
 	{
-		testBbox.topLeft.x -= 0.05;
+		// testBbox.topLeft.x -= 0.05;
+		player.performAction(PlayerAction::MOVE_LEFT);
 	}
 	else if (key == GLFW_KEY_S)
 	{
-		testBbox.topLeft.y -= 0.05;
+		// testBbox.topLeft.y -= 0.05;
+		player.performAction(PlayerAction::MOVE_BACKWARD);
 	}
 	else if (key == GLFW_KEY_D)
 	{
-		testBbox.topLeft.x += 0.05;
+		// testBbox.topLeft.x += 0.05;
+		player.performAction(PlayerAction::MOVE_RIGHT);
 	}
 
-	// @Test moving bounding box 2
-	if (key == GLFW_KEY_I)
-	{
-		testBbox2.topLeft.y += 0.05;
-	}
-	else if (key == GLFW_KEY_J)
-	{
-		testBbox2.topLeft.x -= 0.05;
-	}
-	else if (key == GLFW_KEY_K)
-	{
-		testBbox2.topLeft.y -= 0.05;
-	}
-	else if (key == GLFW_KEY_L)
-	{
-		testBbox2.topLeft.x += 0.05;
-	}
 }
 
 int main(int argc, char** argv)
@@ -251,19 +237,27 @@ int main(int argc, char** argv)
     // Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
-    Entity player;
-    Entity other;
-    player.model = models::ModelType::Dragon;
+	// @TEST: this is just used for testing;
+ 	// @TODO: Factor player setup into seperate function
+    player.model = models::ModelType::PlayerShip;
     player.color = glm::vec3(1.,0.,0.);
+    player.scale = 0.05;
+    player.boundingCube = models::makeBoundingCube(models::playerShip.vertices);
+    
+    Entity other;
     other.color = glm::vec3(0.,1.,0.);
-    other.model = models::ModelType::Dragon;
+    other.scale = 0.05;
+    other.model = models::ModelType::StarEnemy;
+    other.boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+
+    player.boundingCube.print();
 
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
-    
 
-		// @NOTE: Update loop
+
+		// Update section
 		{
 			// @NOTE: Should a "input-struct" be passed to the update functions / be globally defined?
 
@@ -274,55 +268,63 @@ int main(int argc, char** argv)
 
 			// @NOTE: Perhaps perform global update() if necessary
 		}
-    
-        //update();
-        //checkCollisions();
-        
-        //draw();
-        
-        
-        // Bind the shader
-		glUseProgram(globals::mainProgram);
-		updateCamera(camera); //misschien niet nodig
-        
-        glm::mat4 vp = camera.vpMatrix();
 
-	//	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+		// Render section
+    	{
+    		// @NOTE: Do we need multiple shaders?
+	        // Bind the shader
+			glUseProgram(globals::mainProgram);
+			
+			updateCamera(camera); //misschien niet nodig
+	        glm::mat4 vp = camera.vpMatrix();
 
-        glm::mat4 lightMVP = mainLight.vpMatrix();
-        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
-  
-        // Set view position
-		glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
+			//	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
-        glClearDepth(1.0f);  
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	        glm::mat4 lightMVP = mainLight.vpMatrix();
+	        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
+	  
+	        // Set view position
+			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
 
-        player.draw(0,vp);
-        other.draw(0,vp);
-        other.position[0] += 0.001;
-        other.orientation[1] += 0.001;
+	        glClearDepth(1.0f);  
+	        glClearColor(0.f, 0.f, 0.f, 1.0f);
+	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // @TEST: Draw bounding box
-        glm::vec3 hitColor = glm::vec3(0.0, 1.0, 1.0);
-        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
-        if (testBbox.checkIntersection(testBbox2))
-        {
-        	testBbox.draw(vp, hitColor);
-        	testBbox2.draw(vp, hitColor);	
-        } else 
-        {
-        	testBbox.draw(vp, normColor);
-        	testBbox2.draw(vp, normColor);	
-        }
-        
-        glfwSwapBuffers(window);
-        //sleep();
-        
+	        // @NOTE: Refactor into section that renders entity list
+	        player.draw(0,vp);
+	        other.draw(0,vp);
+	        other.position[0] += 0.001;
+	        other.orientation[1] += 0.001;
+
+	        // @TEST: Draw bounding box
+	        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
+	        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
+
+	        // @TODO: Implement BoundingCube -> BoundingBox
+
+	        // @TEST: Draw bounding box
+
+	        BoundingBox otherBbox = other.boundingCube.getProjectedBoundingBox(other.getTransformationMatrix());
+	        BoundingBox playerBbox = player.boundingCube.getProjectedBoundingBox(player.getTransformationMatrix());
+
+	        if (otherBbox.checkIntersection(playerBbox))
+	        {
+	        	// Draw projected bounding box in hit
+		        player.boundingCube.draw(vp * player.getTransformationMatrix(), hitColor);
+		        other.boundingCube.draw(vp * other.getTransformationMatrix(), hitColor);
+
+	        } else
+	        {
+		        player.boundingCube.draw(vp * player.getTransformationMatrix(), normColor);
+		        other.boundingCube.draw(vp * other.getTransformationMatrix(), normColor);
+	        }
+
+	        glfwSwapBuffers(window);
+	        //sleep();
+    	}
     }
     
-        glfwDestroyWindow(window);
+    glfwDestroyWindow(window);
 	
 	glfwTerminate();
     
