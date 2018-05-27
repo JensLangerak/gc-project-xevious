@@ -128,7 +128,6 @@ void setupDebugging()
 	glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
 	glCompileShader(vertexShader);
 
-
 	std::string fragmentShaderCode = readFile("shaders/boundingBoxDebug.frag");
 	const char* fragmentShaderCodePtr = fragmentShaderCode.data();
  
@@ -147,11 +146,11 @@ void setupDebugging()
 	glAttachShader(globals::debugProgram, fragmentShader);
 	glLinkProgram(globals::debugProgram);
 
-		if (!checkProgramErrors(globals::mainProgram)) {
-			std::cerr << "Debug program failed to link!" << std::endl;
-			std::cout << "Press enter to close."; getchar();
-			return;
-		}
+	if (!checkProgramErrors(globals::debugProgram)) {
+		std::cerr << "Debug program failed to link!" << std::endl;
+		std::cout << "Press enter to close."; getchar();
+		return;
+	}
 	// @TODO: Perhaps create a destroyDebugging() if necessary
 }
 
@@ -218,9 +217,6 @@ int main(int argc, char** argv)
 	setupDebugging();
 
     globals::mainProgram = glCreateProgram();
-
-	std::cout << "Got to the second shader!\n"; 
-
 	////////////////// Load and compile main shader program
 	{
 		std::string vertexShaderCode = readFile("shaders/shader.vert");
@@ -252,7 +248,7 @@ int main(int argc, char** argv)
 			std::cerr << "Main program failed to link!" << std::endl;
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
-		}
+		}		
 	}
     
 	// Load vertices of model
@@ -334,7 +330,7 @@ int main(int argc, char** argv)
 			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
 
 	        glClearDepth(1.0f);  
-	        glClearColor(1.f, 1.f, 1.f, 1.0f);
+	        glClearColor(0.f, 0.f, 0.f, 1.0f);
 	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	        // @NOTE: Refactor into section that renders entity list
@@ -368,7 +364,6 @@ int main(int argc, char** argv)
 		        player.boundingCube.draw(vp * player.getTransformationMatrix(), hitColor);
 		        other.boundingCube.draw(vp * other.getTransformationMatrix(), hitColor);
 
-		        // std::cout << "collision!!!" << std::endl;
 	        } else
 	        {
 		        player.boundingCube.draw(vp * player.getTransformationMatrix(), normColor);

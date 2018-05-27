@@ -178,8 +178,8 @@ void BoundingCube::draw(glm::mat4 projViewModel, glm::vec3 drawColor)
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(Vertex), vertexList, GL_STATIC_DRAW);
 
 	// 3. Set projection matrix
-    glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(projViewModel));	
-	glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(drawColor));
+    glUniformMatrix4fv(glGetUniformLocation(globals::debugProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(projViewModel));	
+	glUniform3fv(glGetUniformLocation(globals::debugProgram, "color"), 1, glm::value_ptr(drawColor));
 
 	// 4. Bind vertex data to correct shader inputs
 	glBindVertexArray(globals::boundingBoxVAO);
