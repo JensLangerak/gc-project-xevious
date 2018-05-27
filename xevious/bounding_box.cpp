@@ -44,11 +44,7 @@ void BoundingBox::draw(glm::mat4 projView, glm::vec3 drawColor)
 
 void BoundingBox::draw(glm::mat4 projView, glm::vec3 drawColor, float height)
 {
-	// @TODO: Remove color-defects from drawing bounding boxes;
-	// @TODO: Draw bounding boxes around objects instead of on top of them
-	// @TODO: What normal to use for vertices? (currently using 1.0, 1.0, 1.0)
 	// @NOTE: Assuming that origin is in topleft corner of screen, and both axis grow positive
-	// @TODO: Scale coordinates from gameplay-size to world-coordinates
 	// 1. Create vertex array
 	Vertex vTopLeft = {};
 	vTopLeft.pos = {topLeft.x , height, -topLeft.y};

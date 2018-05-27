@@ -16,6 +16,7 @@ namespace models {
     enum class ModelType{
         Dragon,
         PlayerShip,
+        PlayerGun,
         StarEnemy,
         Terrain
     };

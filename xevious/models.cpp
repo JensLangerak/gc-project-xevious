@@ -27,6 +27,7 @@
 namespace models {    
     Model dragon;
     Model playerShip;
+    Model playerGun;
     Model starEnemy;
     Model terrain;
     std::vector<GLuint> textures;
@@ -142,8 +143,9 @@ namespace models {
         bool result = loadModel(dragon, "resources/dragon.obj"); 
         bool result2 = loadModel(playerShip, "resources/ship.obj");
         bool result3 = loadModel(starEnemy, "resources/starship.obj");   
-    
-        return result && result2 && result3;
+        bool result4 = loadModel(playerGun, "resources/cannon.obj");
+
+        return result && result2 && result3 && result4;
     }
     
     void activateTexture(Textures texture)
@@ -200,6 +202,9 @@ namespace models {
                 break;
             case ModelType::PlayerShip:
                 model = &playerShip;
+                break;
+            case ModelType::PlayerGun:
+                model = &playerGun;
                 break;
             case ModelType::StarEnemy:
             default:

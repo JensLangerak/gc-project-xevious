@@ -13,6 +13,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vector>
+
+// Forward declaring PlayerEntity and Entity
+class PlayerEntity;
+class Entity;
+
+struct Gamestate
+{
+	PlayerEntity* player;
+	std::vector<Entity*>* entityList;
+	double aiTimer;
+};
 
 // Per-vertex data
 struct Vertex {
@@ -22,11 +34,16 @@ struct Vertex {
     glm::vec2 texCoord;
 };
 
+
 namespace globals {
+	extern bool debugMode;
     extern GLuint mainProgram;
     extern GLuint debugProgram;
     extern GLuint boundingBoxVBO;
     extern GLuint boundingBoxVAO;
 }
+
+glm::mat4 getRotationMatrix(double xRot ,double yRot ,double zRot);
+glm::mat4 getScalingMatrix(double scale);
 
 #endif

@@ -14,7 +14,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -25,44 +24,61 @@
 #include "entity.h"
 #include "bounding_box.h"
 
+enum class EntityType
+{
+    Player,
+    Enemy,
+    Bullet,
+    None
+};
+
 class Entity
 {
 public:
     Entity();
+    Entity(glm::vec3 col);
     virtual ~Entity();
 
-    virtual void draw(long thick, glm::mat4 projView);
-       // virtual void update(long thick);
+    virtual void draw(long tick, glm::mat4 projView);
+    virtual void drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor);    
 
-    // @NOTE: don't want all models to be of equal size, but scale might not be the right tool
+    virtual void update(double tick, Gamestate* state);
+    virtual void onCollision(Entity* entity);
+    virtual BoundingBox getProjectedBoundingBox();      // @NOTE: Might eventually be replaced by checkCollision() method 
+
+    // ============= Rendering related ============
     float scale;
-    glm::vec3 position;
-    glm::vec3 orientation;
     glm::vec3 color = glm::vec3(1,1,1); //tijdelijk (Denk ik)
     models::ModelType model;
-
     models::Textures texture = models::Textures::None;
-        
-    // Gameplay related
-    bool isCollidable;
+
+    glm::vec3 orientation;
+    glm::vec3 position;
+    
+    // ============= Gameplay related ============
+    EntityType type = EntityType::None;
+    bool canBeRemoved = false;
+    bool isCollidable = true;
+    bool isAlive = true;
     BoundingCube boundingCube;
     BoundingBox boundingBox;
 
-    // @NOTE(Berend): This is needed (for debugging purposes) in public scope right now. Will fix later
-    glm::mat4 getTransformationMatrix();
+    bool debugIsColliding = false;
 protected:
     // Mesh
     
     // Location etc information
 
-
-
     // Collision
     glm::vec2 get2DPosition();
     BoundingBox getLocatedBoundingBox();
-    // @TODO: Add Collision check that only checks bounding boxes if collidable
 
+    // @NOTE: This is probably a bad idea
+	void retrieveBoundingCube(models::Model model);
+    
+    // @TODO: Add Collision check that only checks bounding boxes if collidable
 private:
+    glm::mat4 getTransformationMatrix();
 };
 
 #endif // ENTITY_H

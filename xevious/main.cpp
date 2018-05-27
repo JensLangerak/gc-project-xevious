@@ -17,17 +17,20 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <ctime>
 
 #include "models.h"
 #include "utils.h"
 #include "entity.h"
 #include "camera.h"
 #include "player_entity.h"
+#include "enemy_entity.h"
 
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+Gamestate gamestate;
 
 bool checkShaderErrors(GLuint shader) {
 	// Check if the shader compiled successfully
@@ -93,8 +96,8 @@ std::string readFile(const std::string& path) {
 Camera camera;
 Camera mainLight;
 
-// @TODO: Move to globals
-PlayerEntity player;
+// @TODO: Move to globals or some kind of GameState struct
+PlayerEntity* player;
 
 void setupDebugging()
 {
@@ -152,33 +155,108 @@ void setupDebugging()
 		return;
 	}
 	// @TODO: Perhaps create a destroyDebugging() if necessary
+
+	std::cout << "Xevious: Press P to enable debug mode\n";
 }
 
 void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
 	// @TEST: Test moving bounding box1
+	if (action != GLFW_PRESS && action != GLFW_REPEAT)
+	{	
+		// @TODO(Berend): change into something more smooth;
+		return;
+	}
+
 	if (key == GLFW_KEY_W)
 	{
-		// testBbox.topLeft.y += 0.05;
-		player.performAction(PlayerAction::MOVE_FORWARD);
+		player->performAction(PlayerAction::MOVE_FORWARD);
 	}
 	else if (key == GLFW_KEY_A)
 	{
-		// testBbox.topLeft.x -= 0.05;
-		player.performAction(PlayerAction::MOVE_LEFT);
+		player->performAction(PlayerAction::MOVE_LEFT);
 	}
 	else if (key == GLFW_KEY_S)
 	{
-		// testBbox.topLeft.y -= 0.05;
-		player.performAction(PlayerAction::MOVE_BACKWARD);
+		player->performAction(PlayerAction::MOVE_BACKWARD);
 	}
 	else if (key == GLFW_KEY_D)
 	{
-		// testBbox.topLeft.x += 0.05;
-		player.performAction(PlayerAction::MOVE_RIGHT);
+		player->performAction(PlayerAction::MOVE_RIGHT);
+	} else if (key == GLFW_KEY_SPACE)
+	{
+		player->performAction(PlayerAction::SHOOT);
+	} else if (key == GLFW_KEY_Q)
+	{
+		player->performAction(PlayerAction::ROLL);
+	} else if (key == GLFW_KEY_P)
+	{
+		// Toggle debug mode
+		globals::debugMode = !globals::debugMode;
+	}
+	// @TEST: Rotating cannon, remove once done testing
+	else if (key == GLFW_KEY_T)
+	{
+		player->weaponAngle -= 0.1;
+	} else if (key == GLFW_KEY_Y)
+	{
+		player->weaponAngle += 0.1;
 	}
 
+	else if (key == GLFW_KEY_Z)
+	{
+		player->position.y += 0.05;
+	} else if (key == GLFW_KEY_X)
+	{
+		player->position.y -= 0.1;
+	}
+}
+
+
+// @TODO(Bug): Fix 
+void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
+{
+	// Calculate current position
+	glm::vec4 pos = gamestate->player->getScreenPosition(vp);
+
+	// @TODO: fix
+	glm::vec2 cannonPos = glm::vec2(pos.x, pos.y);
+	double mouseX;
+	double mouseY;
+	glfwGetCursorPos(window, &mouseX, &mouseY);
+	std::cout << "Mouse x, y: " << mouseX << ", " << mouseY << "\n";
+	std::cout << "Projected " << cannonPos.x << ", " << cannonPos.y << "\n";
+
+	glm::vec2 dir = glm::normalize(glm::vec2((mouseX / WIDTH) * 4 - 2, (mouseY / HEIGHT) * 4 - 2) - cannonPos);
+
+	// Extract angle
+	float angle = atan(dir.y / dir.x);
+	// @TODO: Fix offset
+	gamestate->player->weaponAngle = angle - 3.14/2;
+}
+
+
+// @TODO: Factor into different file / class when this becomes too large 
+//		or we need to switch AI's (for different levels etc)
+void veryObviousAI(Gamestate* state, double delta)
+{
+	// Every second, release a new Enemy entity into the world
+	if (state->aiTimer <= 0)
+	{
+		// Generate random x position between -1 and 1
+		float randVal = (float) rand() / (float) RAND_MAX;
+		float randX = randVal * 2. - 1.;
+
+		EnemyEntity* enemy = new EnemyEntity(glm::vec2(randX, -1.));
+		state->entityList->push_back(enemy);
+
+		// Reset timer
+		state->aiTimer = 1000.0;
+	} else
+	{
+		state->aiTimer -= delta;
+	}
 }
 
 int main(int argc, char** argv)
@@ -271,21 +349,24 @@ int main(int argc, char** argv)
     // Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
-	// @TEST: this is just used for testing;
- 	// @TODO: Factor player setup into seperate function
-    player.model = models::ModelType::PlayerShip;
-    player.color = glm::vec3(1.,0.,0.);
-    player.scale = 0.05;
-    player.boundingCube = models::makeBoundingCube(models::playerShip.vertices);
-    
-    Entity other;
-    other.model = models::ModelType::StarEnemy;
-    other.color = glm::vec3(0.,1.,0.);
-    other.scale = 0.05;
-    other.boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+	// ================== Setup Gamestate ================
+    // @NOTE(Dirty): This is a dirty dirty hack
+    // Reinitialize player to correctly calculate bounding cube
+	gamestate.player = new PlayerEntity();
+	gamestate.entityList = new std::vector<Entity*>();
 
+	player = gamestate.player;
+	gamestate.entityList->push_back(player);
 
-    // @TODO: Make this work on windows
+    EnemyEntity* testEnemy = new EnemyEntity();
+    testEnemy->position = glm::vec3(.0, .0, -1.);
+    testEnemy->model = models::ModelType::StarEnemy;
+    testEnemy->color = glm::vec3(0., 1., 1.);
+    testEnemy->scale = 0.05;
+    testEnemy->boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+    gamestate.entityList->push_back(testEnemy);
+
+    // @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
     models::generateTerrain(30, 30, 100, 100);
     
     Entity terrain;
@@ -293,27 +374,64 @@ int main(int argc, char** argv)
     terrain.texture = models::Textures::Sand;
     terrain.position =  glm::vec3(0.,-10.,-10.);
 
-    player.boundingCube.print();
+    clock_t timeStartFrame = clock();
+    clock_t timeEndFrame = clock();
 
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
-
-
+       	timeStartFrame = timeEndFrame;
+        timeEndFrame = clock();
+        double timeDelta = difftime(timeEndFrame, timeStartFrame);
+        //std::cout << "Timedelta: " << timeDelta << "\n"; 
+        //std::cout << "FPS: " << timeDelta << std::endl; 
+		
 		// Update section
 		{
-			// @NOTE: Should a "input-struct" be passed to the update functions / be globally defined?
-
-			// @TODO: Implement
+			// ====================== update entities ========================
 			// Iterate over entity list and update each entity;
+			for (int i = 0; i < gamestate.entityList->size(); ++i)
+        	{
+        		Entity* e = (*gamestate.entityList)[i];
+        		e->debugIsColliding = false;
+        		
+        		// @NOTE: Can be removed once delete entities on death is implemented
+        		if (!e->canBeRemoved)
+        		{
+        			e->update(timeDelta, &gamestate);	
+        		}
+        	}
 
-			// Delete entities marked dead
+        	// ====================== filter dead entities ========================
+			// @TODO: Delete entities marked dead
 
-			// @NOTE: Perhaps perform global update() if necessary
+        	// ====================== collision detection ========================
+			// Not perfect, but good enough
+	
+			// @TODO(BUG): different enemies should not die from each others hits
+			for (int j = 0; j < gamestate.entityList->size(); ++j)
+	        {
+	        	Entity* a = (*gamestate.entityList)[j];
+	        	Entity* player = gamestate.player;
+
+	        	if (a->isCollidable && a != player && player->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
+	        	{
+	        			a->debugIsColliding = true;
+	        			player->debugIsColliding = true;
+	        			a->onCollision(player);
+						player->onCollision(a);
+	        	}
+	        }        		
+        	
+        	// ====================== Run AI ========================
+        	veryObviousAI(&gamestate, timeDelta);
+        	// update mouse position
+        	updateMouse(window, camera.vpMatrix(), &gamestate);
 		}
 
 		// Render section
     	{
+			// ====================== game render section ========================
     		// @NOTE: Do we need multiple shaders?
 	        // Bind the shader
 			glUseProgram(globals::mainProgram);
@@ -334,40 +452,35 @@ int main(int argc, char** argv)
 	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	        // @NOTE: Refactor into section that renders entity list
-	        player.draw(0,vp);
-	        other.draw(0,vp);
-	        other.position[0] += 0.001;
-	        other.orientation[1] += 0.001;
+	        for (int i = 0; i < gamestate.entityList->size(); ++i)
+	        {
+	        	(*gamestate.entityList)[i]->draw(0, vp);
+	        }
 
 	        // @TODO: Make work
 	        terrain.draw(0, vp);
 
-
-
 	        // ====================== debug render section =======================
-	        // Set debug program shader
-			glUseProgram(globals::debugProgram);
-
-	        // @TEST: Draw bounding box
-	        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
-	        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
-
-	        // @TODO: Implement BoundingCube -> BoundingBox
-
-	        // @TEST: Draw bounding box
-	        BoundingBox otherBbox = other.boundingCube.getProjectedBoundingBox(other.getTransformationMatrix());
-	        BoundingBox playerBbox = player.boundingCube.getProjectedBoundingBox(player.getTransformationMatrix());
-
-	        if (otherBbox.checkIntersection(playerBbox))
+	        if (globals::debugMode)
 	        {
-	        	// Draw projected bounding box in hit
-		        player.boundingCube.draw(vp * player.getTransformationMatrix(), hitColor);
-		        other.boundingCube.draw(vp * other.getTransformationMatrix(), hitColor);
+		        // Set debug program shader
+				glUseProgram(globals::debugProgram);
 
-	        } else
-	        {
-		        player.boundingCube.draw(vp * player.getTransformationMatrix(), normColor);
-		        other.boundingCube.draw(vp * other.getTransformationMatrix(), normColor);
+		        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
+		        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
+
+				for (int i = 0; i < gamestate.entityList->size(); ++i)
+	        	{
+	        		Entity* e = (*gamestate.entityList)[i];
+	        		if (e->debugIsColliding)
+	        		{
+	        			e->drawBoundingCube(vp, hitColor);
+	        		}
+	        		else 
+	        		{
+	        			e->drawBoundingCube(vp, normColor);
+	        		}
+	        	}
 	        }
 
 	        glfwSwapBuffers(window);

@@ -7,18 +7,19 @@
 // @TODO: Testing constructor. should probably be removed or changed later
 Entity::Entity() : boundingBox(0, 0, 0, 0)
 {
-    // @TODO: Add simple block/ship/enemy model for testing in models.cpp
-    // Default mesh for now: dragon
-    
 }
 
-// @Testing constructor, should probably be removed or changed later
-// Entity::Entity(Model::ModelType type) : boundingBox(0, 0, 0, 0)
-// {
-//     model = type;
-//     // Fetch bounding box
+Entity::Entity(glm::vec3 col) : boundingBox(0, 0, 0, 0)
+{
+    color = col;
+}
 
-// }
+void Entity::retrieveBoundingCube(models::Model model)
+{
+    // @NOTE: This method is necessary since we can't construct a bounding cube before model has been loaded
+    // @TODO: If we're constructing many enemies, perhaps this value should be cached in the models namespace
+    boundingCube = models::makeBoundingCube(model.vertices);
+}
 
 Entity::~Entity()
 {
@@ -27,7 +28,6 @@ Entity::~Entity()
 
 glm::mat4 Entity::getTransformationMatrix()
 {
-    // @NOTE(BUG): Assuming that a matrix is 0 by default
     glm::mat4 scaleMatrix = glm::mat4();
     scaleMatrix[0][0] = scale;
     scaleMatrix[1][1] = scale;
@@ -37,24 +37,24 @@ glm::mat4 Entity::getTransformationMatrix()
     double xRot = orientation[0];
     double yRot = orientation[1];
     double zRot = orientation[2];
-    
-    glm::mat4 model = glm::mat4();
-    model[0][0] = cos(yRot) * cos(zRot);
-    model[0][1] = cos(yRot) * sin(zRot);
-    model[0][2] = -sin(yRot);
-    model[1][0] = sin(xRot) * sin(yRot) * cos(zRot) - cos(xRot) * sin(zRot);
-    model[1][1] = sin(xRot) * sin(yRot) * sin(zRot) + cos(xRot) * cos(zRot);
-    model[1][2] = sin(xRot) * cos(yRot);
-    model[2][0] = cos(xRot) * sin(yRot) * cos(zRot) + sin(xRot) * sin(zRot);
-    model[2][1] = cos(xRot) * sin(yRot) * sin(zRot) - sin(xRot) * sin(zRot);
-    model[2][2] = cos(xRot) * cos(yRot);
-        
+
+    glm::mat4 model = getRotationMatrix(xRot, yRot, zRot);
     model[3] = glm::vec4(position, 1.0);
     
     return model * scaleMatrix;
 }
 
-void Entity::draw(long thick, glm::mat4 projView)
+void Entity::update(double tick, Gamestate* state)
+{
+    // @TODO: Figure out if anything needs to be done here
+}
+
+void Entity::onCollision(Entity* entity)
+{
+    
+}
+
+void Entity::draw(long tick, glm::mat4 projView)
 {
     glm::mat4 mvp = projView * getTransformationMatrix();
     glm::mat4 modelMatrix = getTransformationMatrix();
@@ -66,8 +66,23 @@ void Entity::draw(long thick, glm::mat4 projView)
 
     models::activateTexture(texture);
     models::drawModel(model);
-
 }
+
+void Entity::drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor)
+{
+    boundingCube.draw(projView * getTransformationMatrix(), drawColor);   
+}
+
+BoundingBox Entity::getProjectedBoundingBox()
+{
+    return boundingCube.getProjectedBoundingBox(getTransformationMatrix());
+}
+
+// bool Entity::checkCollision(Entity other)
+// {
+//     // @TODO: Implement
+
+// }
 
 
 glm::vec2 Entity::get2DPosition()
