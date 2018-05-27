@@ -3,7 +3,7 @@
 // Global variables for lighting calculations
 layout(location = 1) uniform vec3 viewPos;
 layout(location = 2) uniform vec3 lightPos = vec3(3,3,3);
-layout(location = 3) uniform vec3 color = vec3(1,0,1);
+layout(location = 3) uniform vec3 color;
 layout(location = 4) uniform sampler2D tex;
 layout(location = 5) uniform bool useTexture = false;
 // Per-vertex attributes

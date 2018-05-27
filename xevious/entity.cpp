@@ -2,11 +2,23 @@
 #include "models.h"
 #include <math.h>
 #include "utils.h"
+#include "bounding_box.h"
 
-Entity::Entity()
+// @TODO: Testing constructor. should probably be removed or changed later
+Entity::Entity() : boundingBox(0, 0, 0, 0)
 {
-    //ctor
+    // @TODO: Add simple block/ship/enemy model for testing in models.cpp
+    // Default mesh for now: dragon
+    
 }
+
+// @Testing constructor, should probably be removed or changed later
+// Entity::Entity(Model::ModelType type) : boundingBox(0, 0, 0, 0)
+// {
+//     model = type;
+//     // Fetch bounding box
+
+// }
 
 Entity::~Entity()
 {
@@ -15,6 +27,13 @@ Entity::~Entity()
 
 glm::mat4 Entity::getTransformationMatrix()
 {
+    // @NOTE(BUG): Assuming that a matrix is 0 by default
+    glm::mat4 scaleMatrix = glm::mat4();
+    scaleMatrix[0][0] = scale;
+    scaleMatrix[1][1] = scale;
+    scaleMatrix[2][2] = scale;
+    scaleMatrix[3][3] = 1.0;
+
     double xRot = orientation[0];
     double yRot = orientation[1];
     double zRot = orientation[2];
@@ -32,7 +51,7 @@ glm::mat4 Entity::getTransformationMatrix()
         
     model[3] = glm::vec4(position, 1.0);
     
-    return model;
+    return model * scaleMatrix;
 }
 
 void Entity::draw(long thick, glm::mat4 projView)
@@ -48,4 +67,19 @@ void Entity::draw(long thick, glm::mat4 projView)
     models::activateTexture(texture);
     models::drawModel(model);
 
+}
+
+
+glm::vec2 Entity::get2DPosition()
+{
+    // @NOTE: We use x and z coordinated for x and y 2D coordinates
+    return glm::vec2(position.x, position.z);
+}
+
+BoundingBox Entity::getLocatedBoundingBox()
+{
+    // @TODO: Rotate BoundingCube (assumed to be zero-centered)
+    // @TODO: Extract max BoundingBox from BoundingCube;
+
+    return BoundingBox(boundingBox, get2DPosition());
 }

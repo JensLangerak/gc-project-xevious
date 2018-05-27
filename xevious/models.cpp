@@ -20,15 +20,90 @@
 #include "models.h"
 #include <GL/glut.h>
 #include "utils.h"
+#include <float.h>
+#include "bounding_box.h"
 #include "loadppm.h"
-
 
 namespace models {    
     Model dragon;
+    Model playerShip;
+    Model starEnemy;
     Model terrain;
     Model simple;
     std::vector<GLuint> textures;
-    
+
+    BoundingCube makeBoundingCube(std::vector<Vertex> vertices)
+    {
+        // Find corner points (minX, minY, minZ, maxX, maxY, maxZ)
+        float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX;
+        float maxX = -FLT_MAX, maxY = -FLT_MAX, maxZ = -FLT_MAX;
+
+        for (int i = 0; i < vertices.size(); ++i)
+        {
+            glm::vec3 vertex = vertices[i].pos;
+            minX = fmin(minX, vertex.x);
+            minY = fmin(minY, vertex.y);
+            minZ = fmin(minZ, vertex.z);
+
+            maxX = fmax(maxX, vertex.x);
+            maxY = fmax(maxY, vertex.y);
+            maxZ = fmax(maxZ, vertex.z);
+        }
+
+        // Find farLowerLeft;
+        // @NOTE: Which coordinate would be most intuitive?
+        // y grows upwards from min
+        // x grows rightwards from left
+        // z grows .... from near
+        glm::vec3 farLowerLeft = glm::vec3(minX, minY, minZ);
+
+        // Calculate dimensions
+        glm::vec3 dims = glm::vec3(maxX - minX, maxY - minY, maxZ - minZ);
+
+        // Construct BoundingCube
+        return BoundingCube(farLowerLeft, dims);
+    }
+
+    bool createModelBuffers(Model &model)
+    {
+        // Create Vertex Buffer Object
+        glGenBuffers(1, &(model.vbo));
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(Vertex), model.vertices.data(), GL_STATIC_DRAW);
+
+        // Bind vertex data to shader inputs using their index (location)
+        // These bindings are stored in the Vertex Array Object
+        glGenVertexArrays(1, &(model.vao));
+        glBindVertexArray(model.vao);
+
+        // The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+        // Stride is the distance in bytes between vertices
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "pos"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+        glEnableVertexAttribArray(0);
+
+        // The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
+        // The offset is different and the data should go to input 1 instead of 0
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "normal"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+        glEnableVertexAttribArray(1);
+
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "texCoord"), 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoord)));
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "vertColor"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
+        glEnableVertexAttribArray(3);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+        // @TODO: Generate bounding cube
+
+        return true;
+    }
+
     bool loadModel(Model &model, const char *filename)
     {
         tinyobj::attrib_t attrib;
@@ -59,45 +134,16 @@ namespace models {
                     attrib.normals[3 * index.normal_index + 1],
                     attrib.normals[3 * index.normal_index + 2]
                 };
-                
+
                 vertex.color = glm::vec3(1,1,1);
 
                 model.vertices.push_back(vertex);
             }
         }
-        
-          // Create Vertex Buffer Object
-        glGenBuffers(1, &(model.vbo));
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(Vertex), model.vertices.data(), GL_STATIC_DRAW);
 
-        // Bind vertex data to shader inputs using their index (location)
-        // These bindings are stored in the Vertex Array Object
-        glGenVertexArrays(1, &(model.vao));
-        glBindVertexArray(model.vao);
 
-        // The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-        // Stride is the distance in bytes between vertices
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "pos"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-        glEnableVertexAttribArray(0);
 
-        // The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-        // The offset is different and the data should go to input 1 instead of 0
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "normal"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-        glEnableVertexAttribArray(1);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "texCoord"), 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoord)));
-        glEnableVertexAttribArray(2);
-    
-        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "vertColor"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
-        glEnableVertexAttribArray(3);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        return true;
+        return createModelBuffers(model);
     }
 
     bool loadSimple(std::vector<Vertex> vertices)
@@ -108,45 +154,17 @@ namespace models {
             simple.vertices.push_back(*v);
         }
 
-        // Create Vertex Buffer Object
-        glGenBuffers(1, &(simple.vbo));
-        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
-        glBufferData(GL_ARRAY_BUFFER, simple.vertices.size() * sizeof(Vertex), simple.vertices.data(), GL_STATIC_DRAW);
 
-        // Bind vertex data to shader inputs using their index (location)
-        // These bindings are stored in the Vertex Array Object
-        glGenVertexArrays(1, &(simple.vao));
-        glBindVertexArray(simple.vao);
-
-        // The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-        // Stride is the distance in bytes between vertices
-        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "pos"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-        glEnableVertexAttribArray(0);
-
-        // The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-        // The offset is different and the data should go to input 1 instead of 0
-        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "normal"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-        glEnableVertexAttribArray(1);
-
-        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "texCoord"), 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoord)));
-        glEnableVertexAttribArray(2);
-
-        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "vertColor"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
-        glEnableVertexAttribArray(3);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        return true;
+        return createModelBuffers(simple);
     }
     
     bool loadModels() 
     {
-        bool result = loadModel(dragon, "resources/dragon.obj");
+        bool result = loadModel(dragon, "resources/dragon.obj"); 
+        bool result2 = loadModel(playerShip, "resources/ship.obj");
+        bool result3 = loadModel(starEnemy, "resources/starship.obj");   
     
-        return result;
+        return result && result2 && result3;
     }
     
     void activateTexture(Textures texture)
@@ -203,9 +221,14 @@ namespace models {
                 model = &simple;
                 break;
             case ModelType::Dragon:
-            default:
                 model = &dragon;
                 break;
+            case ModelType::PlayerShip:
+                model = &playerShip;
+                break;
+            case ModelType::StarEnemy:
+            default:
+                model = &starEnemy;
         }
     
         // Bind vertex data
@@ -217,10 +240,13 @@ namespace models {
     }
     
     void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ){
-        Vertex vertices[nbVertX][nbVertZ];
+        // @NOTE: DIRTY TEMPORARY BAD HACK PLEASE FIX 
+        const int TERRAIN_WIDTH = 100;
+        const int TERRAIN_HEIGHT = 100;
+        Vertex vertices[TERRAIN_WIDTH][TERRAIN_HEIGHT];
         for (int i = 0; i < nbVertX; i++) {
             for (int j = 0; j < nbVertZ; j++) {
-                 Vertex vertex = {};
+				Vertex vertex = {};
                  double x = sizeX / nbVertX * (i - 0.5 * nbVertX);
                  double z = sizeZ / nbVertZ * (j - 0.5 * nbVertZ);
                  double y = 0.9 * sin(1 * x + 1 * z + 23.42)

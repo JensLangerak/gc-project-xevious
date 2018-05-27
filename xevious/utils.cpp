@@ -3,5 +3,7 @@
 
 namespace globals {  
     GLuint mainProgram;
-    GLuint boxProgram;
+    GLuint debugProgram;
+    GLuint boundingBoxVBO;
+    GLuint boundingBoxVAO;
 }

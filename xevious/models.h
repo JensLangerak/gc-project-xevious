@@ -8,7 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
+#include "bounding_box.h"
 
 #include "utils.h"
 
@@ -16,7 +16,11 @@ namespace models {
     enum class ModelType{
         Dragon,
         Terrain,
-        Simple
+        Simple,
+
+        PlayerShip,
+        StarEnemy,
+
     };
     
     enum class Textures{
@@ -29,7 +33,13 @@ namespace models {
         GLuint vbo;
         GLuint vao;
     };
+
     extern Model dragon;
+    extern Model playerShip;
+    extern Model starEnemy;
+
+    BoundingCube makeBoundingCube(std::vector<Vertex> vertices);
+
     void activateTexture(Textures texture);
     bool loadModels();
 
@@ -38,6 +48,8 @@ namespace models {
     bool loadTextures();
     void drawModel(ModelType model);
     void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ);
+
+    void generateSimpleModel(const std::vector<Vertex> vertices, unsigned int r);
 }
 
 #endif
