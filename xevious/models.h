@@ -15,10 +15,13 @@
 namespace models {
     enum class ModelType{
         Dragon,
+        Terrain,
+        Simple,
+
         PlayerShip,
         PlayerGun,
         StarEnemy,
-        Terrain
+
     };
     
     enum class Textures{
@@ -40,9 +43,14 @@ namespace models {
 
     void activateTexture(Textures texture);
     bool loadModels();
+
+    bool loadSimple(std::vector<Vertex>);
+
     bool loadTextures();
     void drawModel(ModelType model);
     void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ);
+
+    void generateSimpleModel(const std::vector<Vertex> vertices, unsigned int r);
 }
 
 #endif

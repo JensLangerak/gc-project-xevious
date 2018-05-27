@@ -47,7 +47,7 @@ public:
     virtual BoundingBox getProjectedBoundingBox();      // @NOTE: Might eventually be replaced by checkCollision() method 
 
     // ============= Rendering related ============
-    float scale;
+    float scale = 1.;
     glm::vec3 color = glm::vec3(1,1,1); //tijdelijk (Denk ik)
     models::ModelType model;
     models::Textures texture = models::Textures::None;

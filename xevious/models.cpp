@@ -30,6 +30,7 @@ namespace models {
     Model playerGun;
     Model starEnemy;
     Model terrain;
+    Model simple;
     std::vector<GLuint> textures;
 
     BoundingCube makeBoundingCube(std::vector<Vertex> vertices)
@@ -63,43 +64,9 @@ namespace models {
         // Construct BoundingCube
         return BoundingCube(farLowerLeft, dims);
     }
-    
-    bool loadModel(Model &model, const char *filename)
+
+    bool createModelBuffers(Model &model)
     {
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string err;
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename)) {
-            std::cerr << err << std::endl;
-            return false;
-        }
-
-        // Read triangle vertices from OBJ file
-        for (const auto& shape : shapes) {
-            for (const auto& index : shape.mesh.indices) {
-                Vertex vertex = {};
-
-                // Retrieve coordinates for vertex by index
-                vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
-                };
-
-                // Retrieve components of normal by index
-                vertex.normal = {
-                    attrib.normals[3 * index.normal_index + 0],
-                    attrib.normals[3 * index.normal_index + 1],
-                    attrib.normals[3 * index.normal_index + 2]
-                };
-                
-                vertex.color = glm::vec3(1,1,1);
-
-                model.vertices.push_back(vertex);
-            }
-        }
-        
         // Create Vertex Buffer Object
         glGenBuffers(1, &(model.vbo));
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
@@ -121,21 +88,75 @@ namespace models {
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "normal"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
         glEnableVertexAttribArray(1);
-        
+
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "texCoord"), 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoord)));
         glEnableVertexAttribArray(2);
-    
+
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "vertColor"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
         glEnableVertexAttribArray(3);
-        
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
         // @TODO: Generate bounding cube
 
         return true;
+    }
+
+    bool loadModel(Model &model, const char *filename)
+    {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string err;
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename)) {
+            std::cerr << err << std::endl;
+            return false;
+        }
+
+        model.vertices.clear();
+        // Read triangle vertices from OBJ file
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                Vertex vertex = {};
+
+                // Retrieve coordinates for vertex by index
+                vertex.pos = {
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]
+                };
+
+                // Retrieve components of normal by index
+                vertex.normal = {
+                    attrib.normals[3 * index.normal_index + 0],
+                    attrib.normals[3 * index.normal_index + 1],
+                    attrib.normals[3 * index.normal_index + 2]
+                };
+
+                vertex.color = glm::vec3(1,1,1);
+
+                model.vertices.push_back(vertex);
+            }
+        }
+
+
+
+        return createModelBuffers(model);
+    }
+
+    bool loadSimple(std::vector<Vertex> vertices)
+    {
+        simple.vertices.clear();
+        for (auto v=vertices.begin(); v!=vertices.end();++v)
+        {
+            simple.vertices.push_back(*v);
+        }
+
+
+        return createModelBuffers(simple);
     }
     
     bool loadModels() 
@@ -192,10 +213,14 @@ namespace models {
     
     void drawModel(ModelType modelType)
     {
+        glUseProgram(globals::mainProgram);
         Model *model;
         switch(modelType) {
             case ModelType::Terrain:
                 model = &terrain;
+                break;
+            case ModelType::Simple:
+                model = &simple;
                 break;
             case ModelType::Dragon:
                 model = &dragon;

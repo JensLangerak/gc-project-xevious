@@ -23,8 +23,12 @@
 #include "utils.h"
 #include "entity.h"
 #include "camera.h"
+
+#include "mesh_simplification.h"
+
 #include "player_entity.h"
 #include "enemy_entity.h"
+
 
 // Configuration
 const int WIDTH = 800;
@@ -292,7 +296,8 @@ int main(int argc, char** argv)
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);    
 
-	setupDebugging();
+    setupDebugging();
+
 
     globals::mainProgram = glCreateProgram();
 	////////////////// Load and compile main shader program
@@ -328,6 +333,7 @@ int main(int argc, char** argv)
 			return EXIT_FAILURE;
 		}		
 	}
+
     
 	// Load vertices of model
     if (!models::loadModels())
@@ -377,6 +383,10 @@ int main(int argc, char** argv)
     clock_t timeStartFrame = clock();
     clock_t timeEndFrame = clock();
 
+    MeshSimplification simple = MeshSimplification(models::dragon.vertices, 10);
+    models::loadSimple(simple.simplifiedMesh);
+//    other.model = models::ModelType::Simple;
+
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
@@ -385,7 +395,7 @@ int main(int argc, char** argv)
         double timeDelta = difftime(timeEndFrame, timeStartFrame);
         //std::cout << "Timedelta: " << timeDelta << "\n"; 
         //std::cout << "FPS: " << timeDelta << std::endl; 
-		
+
 		// Update section
 		{
 			// ====================== update entities ========================
@@ -483,6 +493,7 @@ int main(int argc, char** argv)
 	        	}
 	        }
 
+			//simple.drawGrid(vp * other.getTransformationMatrix());
 	        glfwSwapBuffers(window);
 	        //sleep();
     	}
