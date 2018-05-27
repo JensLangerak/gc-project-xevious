@@ -38,9 +38,9 @@ class Entity
     glm::vec3 color = glm::vec3(1,1,1); //tijdelijk (Denk ik)
     models::ModelType model;
     models::Textures texture = models::Textures::None;
-        
-protected:
     glm::mat4 getTransformationMatrix();
+protected:
+
 
     
     //mesh

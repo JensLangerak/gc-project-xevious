@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "entity.h"
 #include "camera.h"
+#include "grid.h"
 
 // Configuration
 const int WIDTH = 800;
@@ -123,7 +124,7 @@ int main(int argc, char** argv)
     
 
     globals::mainProgram = glCreateProgram();
-    
+    globals::boxProgram = glCreateProgram();
 
 	////////////////// Load and compile main shader program
 	{
@@ -158,6 +159,42 @@ int main(int argc, char** argv)
 			return EXIT_FAILURE;
 		}
 	}
+
+
+
+    ////////////////// Load and compile debug shader program
+    {
+        std::string vertexShaderCode = readFile("shaders/box_shader.vert");
+        const char* vertexShaderCodePtr = vertexShaderCode.data();
+
+        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
+        glCompileShader(vertexShader);
+
+        std::string fragmentShaderCode = readFile("shaders/box_shader.frag");
+        const char* fragmentShaderCodePtr = fragmentShaderCode.data();
+
+        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
+        glCompileShader(fragmentShader);
+
+        if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
+            std::cerr << "Shader(s) failed to compile!" << std::endl;
+            std::cout << "Press enter to close."; getchar();
+            return EXIT_FAILURE;
+        }
+
+        // Combine vertex and fragment shaders into single shader program
+        glAttachShader(globals::boxProgram, vertexShader);
+        glAttachShader(globals::boxProgram, fragmentShader);
+        glLinkProgram(globals::boxProgram);
+
+        if (!checkProgramErrors(globals::boxProgram)) {
+            std::cerr << "Main program failed to link!" << std::endl;
+            std::cout << "Press enter to close."; getchar();
+            return EXIT_FAILURE;
+        }
+    }
     
 	// Load vertices of model
     if (!models::loadModels())
@@ -191,11 +228,13 @@ int main(int argc, char** argv)
     terrain.model = models::ModelType::Terrain;
     terrain.texture = models::Textures::Sand;
     terrain.position =  glm::vec3(0.,-10.,-10.);
+    Grid grid = Grid(models::dragon.vertices, 10);
+    models::loadSimple(grid.simple);
+    other.model = models::ModelType::Simple;
 	while (!glfwWindowShouldClose(window)) 
     {
         glfwPollEvents();
-        
-    
+
         //update();
         //checkCollisions();
         
@@ -219,15 +258,15 @@ int main(int argc, char** argv)
         glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        player.draw(0,vp);
+     //   player.draw(0,vp);
         other.draw(0,vp);
         other.position[0] += 0.0001;
         other.orientation[1] += 0.01;
-
         terrain.draw(0, vp);
+      //  grid.drawGrid(vp * other.getTransformationMatrix());
         glfwSwapBuffers(window);
         //sleep();
-        
+
     }
     
         glfwDestroyWindow(window);

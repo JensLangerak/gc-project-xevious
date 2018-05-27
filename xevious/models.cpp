@@ -26,6 +26,7 @@
 namespace models {    
     Model dragon;
     Model terrain;
+    Model simple;
     std::vector<GLuint> textures;
     
     bool loadModel(Model &model, const char *filename)
@@ -39,6 +40,7 @@ namespace models {
             return false;
         }
 
+        model.vertices.clear();
         // Read triangle vertices from OBJ file
         for (const auto& shape : shapes) {
             for (const auto& index : shape.mesh.indices) {
@@ -97,6 +99,48 @@ namespace models {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         return true;
     }
+
+    bool loadSimple(std::vector<Vertex> vertices)
+    {
+        simple.vertices.clear();
+        for (auto v=vertices.begin(); v!=vertices.end();++v)
+        {
+            simple.vertices.push_back(*v);
+        }
+
+        // Create Vertex Buffer Object
+        glGenBuffers(1, &(simple.vbo));
+        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
+        glBufferData(GL_ARRAY_BUFFER, simple.vertices.size() * sizeof(Vertex), simple.vertices.data(), GL_STATIC_DRAW);
+
+        // Bind vertex data to shader inputs using their index (location)
+        // These bindings are stored in the Vertex Array Object
+        glGenVertexArrays(1, &(simple.vao));
+        glBindVertexArray(simple.vao);
+
+        // The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+        // Stride is the distance in bytes between vertices
+        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "pos"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+        glEnableVertexAttribArray(0);
+
+        // The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
+        // The offset is different and the data should go to input 1 instead of 0
+        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "normal"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+        glEnableVertexAttribArray(1);
+
+        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "texCoord"), 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoord)));
+        glEnableVertexAttribArray(2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, simple.vbo);
+        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "vertColor"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
+        glEnableVertexAttribArray(3);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        return true;
+    }
     
     bool loadModels() 
     {
@@ -149,10 +193,14 @@ namespace models {
     
     void drawModel(ModelType modelType)
     {
+        glUseProgram(globals::mainProgram);
         Model *model;
         switch(modelType) {
             case ModelType::Terrain:
                 model = &terrain;
+                break;
+            case ModelType::Simple:
+                model = &simple;
                 break;
             case ModelType::Dragon:
             default:

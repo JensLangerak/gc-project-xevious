@@ -3,4 +3,5 @@
 
 namespace globals {  
     GLuint mainProgram;
+    GLuint boxProgram;
 }

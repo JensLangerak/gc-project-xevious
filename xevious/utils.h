@@ -24,6 +24,7 @@ struct Vertex {
 
 namespace globals {
     extern GLuint mainProgram;
+    extern GLuint boxProgram;
 }
 
 #endif

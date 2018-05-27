@@ -15,7 +15,8 @@
 namespace models {
     enum class ModelType{
         Dragon,
-        Terrain
+        Terrain,
+        Simple
     };
     
     enum class Textures{
@@ -28,9 +29,12 @@ namespace models {
         GLuint vbo;
         GLuint vao;
     };
-
+    extern Model dragon;
     void activateTexture(Textures texture);
     bool loadModels();
+
+    bool loadSimple(std::vector<Vertex>);
+
     bool loadTextures();
     void drawModel(ModelType model);
     void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ);
