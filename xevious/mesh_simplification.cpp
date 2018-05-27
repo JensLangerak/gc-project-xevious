@@ -13,7 +13,7 @@ MeshSimplification:: MeshSimplification (const std::vector<Vertex> vertices, uns
 
     CellContent verticesInCell;
     putVerticesInCells(vertices, verticesInCell);
-    calculateRepresentatices(vertices, verticesInCell);
+    calculateRepresentatives(vertices, verticesInCell);
 
     constructTriangles(vertices);
     recalculateNormals();
@@ -91,7 +91,7 @@ void MeshSimplification::putVerticesInCells(const std::vector<Vertex> vertices, 
     }
 }
 
-void MeshSimplification::calculateRepresentatices(const std::vector<Vertex> vertices, CellContent &verticesInCell) {
+void MeshSimplification::calculateRepresentatives(const std::vector<Vertex> vertices, CellContent &verticesInCell) {
     for (auto cellVertices=verticesInCell.begin(); cellVertices!=verticesInCell.end();++cellVertices)
     {
         Vertex result;
@@ -125,8 +125,9 @@ void MeshSimplification::createGrid(const std::vector<Vertex> vertices) {
         }
 
     }
-    origin = min;
-    size = std::max(max[0] - min[0],  std::max(max[1] - min[1], max[2] - min[2]));
+    float epsilon = 0.01;
+    origin = min - glm::vec3(epsilon,epsilon,epsilon);
+    size = std::max(max[0] - min[0],  std::max(max[1] - min[1], max[2] - min[2])) + 2* epsilon;
 
     float edge = size / r;
     for (int x = 0; x < r; x++)

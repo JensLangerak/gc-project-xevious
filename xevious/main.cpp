@@ -287,7 +287,7 @@ int main(int argc, char** argv)
     Entity other;
     other.model = models::ModelType::StarEnemy;
     other.color = glm::vec3(0.,1.,0.);
-    other.scale = 1;
+    other.scale = 0.05;
     other.boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
 
 
@@ -301,7 +301,7 @@ int main(int argc, char** argv)
 
     MeshSimplification simple = MeshSimplification(models::dragon.vertices, 10);
     models::loadSimple(simple.simplifiedMesh);
-    other.model = models::ModelType::Simple;
+//    other.model = models::ModelType::Simple;
 
 
     player.boundingCube.print();

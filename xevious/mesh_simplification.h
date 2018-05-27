@@ -38,7 +38,7 @@ public:
 protected:
     void createGrid(const std::vector<Vertex> vertices);
     void putVerticesInCells(const std::vector<Vertex> vertices, CellContent &verticesInCell);
-    void calculateRepresentatices(const std::vector<Vertex> vertices, CellContent &verticesInCell);
+    void calculateRepresentatives(const std::vector<Vertex> vertices, CellContent &verticesInCell);
     void constructTriangles(const std::vector<Vertex> vertices);
     void recalculateNormals();
 };
