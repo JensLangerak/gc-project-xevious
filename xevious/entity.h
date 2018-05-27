@@ -38,14 +38,17 @@ public:
     float scale;
     glm::vec3 position;
     glm::vec3 orientation;
-    glm::vec3 color; //tijdelijk (Denk ik)
+    glm::vec3 color = glm::vec3(1,1,1); //tijdelijk (Denk ik)
     models::ModelType model;
 
+    models::Textures texture = models::Textures::None;
+        
     // Gameplay related
     bool isCollidable;
     BoundingCube boundingCube;
     BoundingBox boundingBox;
 
+    // @NOTE(Berend): This is needed (for debugging purposes) in public scope right now. Will fix later
     glm::mat4 getTransformationMatrix();
 protected:
     // Mesh

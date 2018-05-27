@@ -61,8 +61,9 @@ bool checkProgramErrors(GLuint program) {
 		GLint logLength;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
 
-		std::vector<GLchar> logBuffer(logLength);
+		std::vector<GLchar> logBuffer(logLength+1);
 		glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
+		logBuffer[logLength] = '\0';
 
 		std::cerr << logBuffer.data() << std::endl;
 		
@@ -97,7 +98,7 @@ PlayerEntity player;
 
 void setupDebugging()
 {
-	// 1. Setup for drawing bounding
+	// 1. Setup for drawing bounding boxes
 	// Create VBO and VAO for boundingBox objects;
 	glCreateBuffers(1, &globals::boundingBoxVBO);
 	glGenVertexArrays(1, &globals::boundingBoxVAO);
@@ -117,6 +118,40 @@ void setupDebugging()
 	// Bind default buffer again
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+
+	// 2. Setup debug program for shading bounding boxes
+	globals::debugProgram = glCreateProgram();
+	std::string vertexShaderCode = readFile("shaders/boundingBoxDebug.vert");
+	const char* vertexShaderCodePtr = vertexShaderCode.data();
+
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
+	glCompileShader(vertexShader);
+
+
+	std::string fragmentShaderCode = readFile("shaders/boundingBoxDebug.frag");
+	const char* fragmentShaderCodePtr = fragmentShaderCode.data();
+ 
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
+	glCompileShader(fragmentShader);
+
+	if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
+		std::cerr << "debug Shader(s) failed to compile!" << std::endl;
+		std::cout << "Press enter to close."; getchar();
+		return;
+	}
+
+	// Combine vertex and fragment shaders
+	glAttachShader(globals::debugProgram, vertexShader);
+	glAttachShader(globals::debugProgram, fragmentShader);
+	glLinkProgram(globals::debugProgram);
+
+		if (!checkProgramErrors(globals::mainProgram)) {
+			std::cerr << "Debug program failed to link!" << std::endl;
+			std::cout << "Press enter to close."; getchar();
+			return;
+		}
 	// @TODO: Perhaps create a destroyDebugging() if necessary
 }
 
@@ -179,23 +214,25 @@ int main(int argc, char** argv)
 
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);    
-    
-    globals::mainProgram = glCreateProgram();
-	
+
 	setupDebugging();
+
+    globals::mainProgram = glCreateProgram();
+
+	std::cout << "Got to the second shader!\n"; 
 
 	////////////////// Load and compile main shader program
 	{
-		std::string vertexShaderCode = readFile("shader.vert");
+		std::string vertexShaderCode = readFile("shaders/shader.vert");
 		const char* vertexShaderCodePtr = vertexShaderCode.data();
 
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
 		glCompileShader(vertexShader);
 
-		std::string fragmentShaderCode = readFile("shader.frag");
+		std::string fragmentShaderCode = readFile("shaders/shader.frag");
 		const char* fragmentShaderCodePtr = fragmentShaderCode.data();
-
+ 
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
 		glCompileShader(fragmentShader);
@@ -205,33 +242,34 @@ int main(int argc, char** argv)
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
 		}
-
+                
 		// Combine vertex and fragment shaders into single shader program
 		glAttachShader(globals::mainProgram, vertexShader);
 		glAttachShader(globals::mainProgram, fragmentShader);
 		glLinkProgram(globals::mainProgram);
-
+    
 		if (!checkProgramErrors(globals::mainProgram)) {
 			std::cerr << "Main program failed to link!" << std::endl;
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
 		}
 	}
-
+    
 	// Load vertices of model
     if (!models::loadModels())
     {
         std::cerr << "Program failed to load!" << std::endl;
 		return EXIT_FAILURE;   
     }
-    
-    // @TODO: Change to top-down orthographic camera
+
+    // @TODO: possibly change to top-down orthographic camera?
+    models::loadTextures();
     camera.aspect = WIDTH / (float)HEIGHT;
 	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
 	camera.forward  = -camera.position;
-    
+  
     mainLight.aspect = WIDTH / (float)HEIGHT;
-	mainLight.position = glm::vec3(-10.f, 10.f, 8.9f);
+	mainLight.position = glm::vec3(-30.f, 100.f, 10.f);
 	mainLight.forward  = -mainLight.position;
     
     // Enable depth testing
@@ -245,10 +283,19 @@ int main(int argc, char** argv)
     player.boundingCube = models::makeBoundingCube(models::playerShip.vertices);
     
     Entity other;
+    other.model = models::ModelType::StarEnemy;
     other.color = glm::vec3(0.,1.,0.);
     other.scale = 0.05;
-    other.model = models::ModelType::StarEnemy;
     other.boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+
+
+    // @TODO: Make this work on windows
+    models::generateTerrain(30, 30, 100, 100);
+    
+    Entity terrain;
+    terrain.model = models::ModelType::Terrain;
+    terrain.texture = models::Textures::Sand;
+    terrain.position =  glm::vec3(0.,-10.,-10.);
 
     player.boundingCube.print();
 
@@ -287,7 +334,7 @@ int main(int argc, char** argv)
 			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
 
 	        glClearDepth(1.0f);  
-	        glClearColor(0.f, 0.f, 0.f, 1.0f);
+	        glClearColor(1.f, 1.f, 1.f, 1.0f);
 	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	        // @NOTE: Refactor into section that renders entity list
@@ -296,6 +343,15 @@ int main(int argc, char** argv)
 	        other.position[0] += 0.001;
 	        other.orientation[1] += 0.001;
 
+	        // @TODO: Make work
+	        terrain.draw(0, vp);
+
+
+
+	        // ====================== debug render section =======================
+	        // Set debug program shader
+			glUseProgram(globals::debugProgram);
+
 	        // @TEST: Draw bounding box
 	        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
 	        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
@@ -303,7 +359,6 @@ int main(int argc, char** argv)
 	        // @TODO: Implement BoundingCube -> BoundingBox
 
 	        // @TEST: Draw bounding box
-
 	        BoundingBox otherBbox = other.boundingCube.getProjectedBoundingBox(other.getTransformationMatrix());
 	        BoundingBox playerBbox = player.boundingCube.getProjectedBoundingBox(player.getTransformationMatrix());
 
@@ -313,6 +368,7 @@ int main(int argc, char** argv)
 		        player.boundingCube.draw(vp * player.getTransformationMatrix(), hitColor);
 		        other.boundingCube.draw(vp * other.getTransformationMatrix(), hitColor);
 
+		        // std::cout << "collision!!!" << std::endl;
 	        } else
 	        {
 		        player.boundingCube.draw(vp * player.getTransformationMatrix(), normColor);

@@ -16,7 +16,13 @@ namespace models {
     enum class ModelType{
         Dragon,
         PlayerShip,
-        StarEnemy
+        StarEnemy,
+        Terrain
+    };
+    
+    enum class Textures{
+        None = -1,
+        Sand = 0
     };
     
     struct Model {
@@ -30,8 +36,12 @@ namespace models {
     extern Model starEnemy;
 
     BoundingCube makeBoundingCube(std::vector<Vertex> vertices);
+
+    void activateTexture(Textures texture);
     bool loadModels();
+    bool loadTextures();
     void drawModel(ModelType model);
+    void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ);
 }
 
 #endif

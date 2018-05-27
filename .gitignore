@@ -38,3 +38,5 @@
 *.project
 *.workspace
 */.codelite/*
+*/build/*
+*/cmake-build-debug/*

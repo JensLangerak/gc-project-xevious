@@ -18,10 +18,13 @@
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 normal;
+    glm::vec3 color;
+    glm::vec2 texCoord;
 };
 
 namespace globals {
     extern GLuint mainProgram;
+    extern GLuint debugProgram;
     extern GLuint boundingBoxVBO;
     extern GLuint boundingBoxVAO;
 }
