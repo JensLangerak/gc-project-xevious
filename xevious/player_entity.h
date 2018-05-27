@@ -26,7 +26,7 @@ public:
 	void update(double tick, Gamestate* state);
 	void onCollision(Entity* entity);
 	
-	void performAction(PlayerAction action);
+	void performAction(PlayerAction action, Gamestate* state);
 	BoundingBox getProjectedBoundingBox();
 
 	// @NOTE: Temporarily for testing only

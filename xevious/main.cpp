@@ -28,6 +28,7 @@
 
 #include "player_entity.h"
 #include "enemy_entity.h"
+#include "bullet_entity.h"
 
 
 // Configuration
@@ -175,25 +176,25 @@ void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 
 	if (key == GLFW_KEY_W)
 	{
-		player->performAction(PlayerAction::MOVE_FORWARD);
+		player->performAction(PlayerAction::MOVE_FORWARD, &gamestate);
 	}
 	else if (key == GLFW_KEY_A)
 	{
-		player->performAction(PlayerAction::MOVE_LEFT);
+		player->performAction(PlayerAction::MOVE_LEFT, &gamestate);
 	}
 	else if (key == GLFW_KEY_S)
 	{
-		player->performAction(PlayerAction::MOVE_BACKWARD);
+		player->performAction(PlayerAction::MOVE_BACKWARD, &gamestate);
 	}
 	else if (key == GLFW_KEY_D)
 	{
-		player->performAction(PlayerAction::MOVE_RIGHT);
+		player->performAction(PlayerAction::MOVE_RIGHT, &gamestate);
 	} else if (key == GLFW_KEY_SPACE)
 	{
-		player->performAction(PlayerAction::SHOOT);
+		player->performAction(PlayerAction::SHOOT, &gamestate);
 	} else if (key == GLFW_KEY_Q)
 	{
-		player->performAction(PlayerAction::ROLL);
+		player->performAction(PlayerAction::ROLL, &gamestate);
 	} else if (key == GLFW_KEY_P)
 	{
 		// Toggle debug mode
@@ -229,8 +230,8 @@ void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 	double mouseX;
 	double mouseY;
 	glfwGetCursorPos(window, &mouseX, &mouseY);
-	std::cout << "Mouse x, y: " << mouseX << ", " << mouseY << "\n";
-	std::cout << "Projected " << cannonPos.x << ", " << cannonPos.y << "\n";
+	// std::cout << "Mouse x, y: " << mouseX << ", " << mouseY << "\n";
+	// std::cout << "Projected " << cannonPos.x << ", " << cannonPos.y << "\n";
 
 	glm::vec2 dir = glm::normalize(glm::vec2((mouseX / WIDTH) * 4 - 2, (mouseY / HEIGHT) * 4 - 2) - cannonPos);
 
@@ -360,6 +361,7 @@ int main(int argc, char** argv)
     // Reinitialize player to correctly calculate bounding cube
 	gamestate.player = new PlayerEntity();
 	gamestate.entityList = new std::vector<Entity*>();
+	gamestate.bulletList = new std::vector<BulletEntity*>();
 
 	player = gamestate.player;
 	gamestate.entityList->push_back(player);
@@ -412,13 +414,24 @@ int main(int argc, char** argv)
         		}
         	}
 
+        	// Update bullets @NOTE: I know this can be done better, but this is temporarily to prevent speed slowdowns
+			for (int i = 0; i < gamestate.bulletList->size(); ++i)
+        	{
+        		BulletEntity* bullet = (*gamestate.bulletList)[i]; 
+        		
+        		// @NOTE: Can be removed once delete entities on death is implemented
+        		if (!bullet->canBeRemoved)
+        		{
+        			bullet->update(timeDelta, &gamestate);	
+        		}
+        	}
+
         	// ====================== filter dead entities ========================
-			// @TODO: Delete entities marked dead
+			// @TODO: Delete entities marked dead (in both entityList and bulletList)!!!!!!
 
         	// ====================== collision detection ========================
-			// Not perfect, but good enough
-	
-			// @TODO(BUG): different enemies should not die from each others hits
+			// Not perfect, but good enough for now
+
 			for (int j = 0; j < gamestate.entityList->size(); ++j)
 	        {
 	        	Entity* a = (*gamestate.entityList)[j];
@@ -426,13 +439,30 @@ int main(int argc, char** argv)
 
 	        	if (a->isCollidable && a != player && player->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
 	        	{
-	        			a->debugIsColliding = true;
-	        			player->debugIsColliding = true;
-	        			a->onCollision(player);
-						player->onCollision(a);
+        			a->debugIsColliding = true;
+        			player->debugIsColliding = true;
+        			a->onCollision(player);
+					player->onCollision(a);
 	        	}
-	        }        		
+	        }
         	
+	        for (int i = 0; i < gamestate.bulletList->size(); ++i)
+	        {
+	        	for (int j = 0; j < gamestate.entityList->size(); ++j)
+	        	{
+	        		Entity* a = (*gamestate.entityList)[j];
+	        		BulletEntity* b = (*gamestate.bulletList)[i];
+
+	        		if (a->isCollidable && b->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
+	        		{
+	        			a->debugIsColliding = true;
+	        			b->debugIsColliding = true;
+	        			a->onCollision(b);
+	        			b->onCollision(a);
+	        		}
+	        	}
+	        }
+
         	// ====================== Run AI ========================
         	veryObviousAI(&gamestate, timeDelta);
         	// update mouse position
@@ -469,6 +499,12 @@ int main(int argc, char** argv)
 
 	        // @TODO: Make work
 	        terrain.draw(0, vp);
+
+	        for (int i = 0; i < gamestate.bulletList->size(); ++i)
+	        {
+	        	(*gamestate.bulletList)[i]->draw(0, vp);
+	        }
+
 
 	        // ====================== debug render section =======================
 	        if (globals::debugMode)

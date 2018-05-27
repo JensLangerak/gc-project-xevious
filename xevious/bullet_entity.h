@@ -6,6 +6,7 @@
 
 class BulletEntity : public Entity
 {
+public:
 	BulletEntity(glm::vec3 pos, glm::vec3 dir);
 
 	void update(double tick, Gamestate* state);
@@ -15,4 +16,4 @@ class BulletEntity : public Entity
 	EntityType type = EntityType::Bullet;
 };
 
-#ifndef
+#endif

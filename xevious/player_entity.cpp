@@ -3,6 +3,7 @@
 #include "models.h"
 #include "utils.h"
 #include "bounding_box.h"
+#include "bullet_entity.h"
 
 #define PI 3.14
 
@@ -27,7 +28,7 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 	lives = 10;
 }
 
-void PlayerEntity::performAction(PlayerAction action)
+void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 {
 	// @TODO: Do bounds checking for player location to prevent moving outside of screen
 	// @TODO: Change movement_amount to be dependent on tick (move actual action to update function)
@@ -50,10 +51,17 @@ void PlayerEntity::performAction(PlayerAction action)
 			// @TODO: Implement "Start animation which is carried out in update"
 		break;
 		case PlayerAction::SHOOT:
-			// @TODO: Implement
-
 			// Spawn new entity and set direction
+			{
+				glm::vec3 pos = state->player->position;
+				float angle = state->player->weaponAngle;
+				// @TODO: Fix the math here
+				glm::vec3 dir = glm::vec3(sin(angle), 0., -cos(angle));
+				BulletEntity* bullet = new BulletEntity(pos, dir);
 
+				state->bulletList->push_back(bullet);
+				std::cout << "added bullet!\n";	
+			}
 			std::cout << "pew pew pew\n";
 		break;
 		default:

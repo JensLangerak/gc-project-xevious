@@ -18,11 +18,13 @@
 // Forward declaring PlayerEntity and Entity
 class PlayerEntity;
 class Entity;
+class BulletEntity;
 
 struct Gamestate
 {
 	PlayerEntity* player;
 	std::vector<Entity*>* entityList;
+	std::vector<BulletEntity*>* bulletList;
 	double aiTimer;
 };
 
