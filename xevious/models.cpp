@@ -164,7 +164,7 @@ namespace models {
         bool result = loadModel(dragon, "resources/dragon.obj"); 
         bool result2 = loadModel(playerShip, "resources/ship.obj");
         bool result3 = loadModel(starEnemy, "resources/starship.obj");   
-        bool result4 = loadModel(playerGun, "resources/cannon.obj");
+        bool result4 = loadModel(playerGun, "resources/dragon.obj");
 
         return result && result2 && result3 && result4;
     }
@@ -179,9 +179,9 @@ namespace models {
         
         glUniform1i(glGetUniformLocation(globals::mainProgram, "useTexture"), 1);
                 
-        glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE0 + textures[(int) texture]);
 		glBindTexture(GL_TEXTURE_2D, textures[(int) texture]);
-        glUniform1i(glGetUniformLocation(globals::mainProgram, "tex"), 0);
+        glUniform1i(glGetUniformLocation(globals::mainProgram, "tex"), textures[(int) texture]);
     }
     
     void loadTexture(int index, const char *filename)
@@ -213,7 +213,7 @@ namespace models {
     
     void drawModel(ModelType modelType)
     {
-        glUseProgram(globals::mainProgram);
+
         Model *model;
         switch(modelType) {
             case ModelType::Terrain:
