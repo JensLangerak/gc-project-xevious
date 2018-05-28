@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "entity.h"
 #include "player_entity.h"
 #include "models.h"
 #include "utils.h"
@@ -22,6 +23,9 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 	// @TODO: Tweak until looks right;
 	// @NOTE: Also needs to be transformed into world space
 	relativeLocWeapon = glm::vec3(0., 1.0, 0.);
+	type = EntityType::Player;
+
+
 
 
 	// -------------- Gameplay section ------------------

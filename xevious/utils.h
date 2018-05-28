@@ -13,18 +13,21 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <vector>
+#include <list>
 
 // Forward declaring PlayerEntity and Entity
 class PlayerEntity;
 class Entity;
 class BulletEntity;
 
+// @TODO: Implement
+//enum class Gamemode
+
 struct Gamestate
 {
 	PlayerEntity* player;
-	std::vector<Entity*>* entityList;
-	std::vector<BulletEntity*>* bulletList;
+	std::list<Entity*>* entityList;
+	std::list<BulletEntity*>* bulletList;
 	double aiTimer;
 };
 

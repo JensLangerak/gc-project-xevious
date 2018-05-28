@@ -16,8 +16,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
 #include <ctime>
+#include <cmath>
+#include <list>
 
 #include "models.h"
 #include "utils.h"
@@ -30,6 +31,7 @@
 #include "enemy_entity.h"
 #include "bullet_entity.h"
 
+using std::list;
 
 // Configuration
 const int WIDTH = 800;
@@ -219,13 +221,12 @@ void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 }
 
 
-// @TODO(Bug): Fix 
+// @TODO(Bug): fix
 void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 {
 	// Calculate current position
 	glm::vec4 pos = gamestate->player->getScreenPosition(vp);
 
-	// @TODO: fix
 	glm::vec2 cannonPos = glm::vec2(pos.x, pos.y);
 	double mouseX;
 	double mouseY;
@@ -236,9 +237,8 @@ void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 	glm::vec2 dir = glm::normalize(glm::vec2((mouseX / WIDTH) * 4 - 2, (mouseY / HEIGHT) * 4 - 2) - cannonPos);
 
 	// Extract angle
-	float angle = atan(dir.y / dir.x);
-	// @TODO: Fix offset
-	gamestate->player->weaponAngle = angle - 3.14/2;
+	float angle = atan2(dir.y, dir.x);
+	gamestate->player->weaponAngle = angle + 3.14/2;
 }
 
 
@@ -360,8 +360,8 @@ int main(int argc, char** argv)
     // @NOTE(Dirty): This is a dirty dirty hack
     // Reinitialize player to correctly calculate bounding cube
 	gamestate.player = new PlayerEntity();
-	gamestate.entityList = new std::vector<Entity*>();
-	gamestate.bulletList = new std::vector<BulletEntity*>();
+	gamestate.entityList = new std::list<Entity*>();
+	gamestate.bulletList = new std::list<BulletEntity*>();
 
 	player = gamestate.player;
 	gamestate.entityList->push_back(player);
@@ -398,13 +398,18 @@ int main(int argc, char** argv)
         //std::cout << "Timedelta: " << timeDelta << "\n"; 
         //std::cout << "FPS: " << timeDelta << std::endl; 
 
+
+		// @NOTE: For convenience sake
+		list<Entity*> entityList = *(gamestate.entityList);
+		list<BulletEntity*> bulletList = *(gamestate.bulletList);
 		// Update section
 		{
 			// ====================== update entities ========================
 			// Iterate over entity list and update each entity;
-			for (int i = 0; i < gamestate.entityList->size(); ++i)
+
+			for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); ++it)
         	{
-        		Entity* e = (*gamestate.entityList)[i];
+        		Entity* e = *it;
         		e->debugIsColliding = false;
         		
         		// @NOTE: Can be removed once delete entities on death is implemented
@@ -415,9 +420,9 @@ int main(int argc, char** argv)
         	}
 
         	// Update bullets @NOTE: I know this can be done better, but this is temporarily to prevent speed slowdowns
-			for (int i = 0; i < gamestate.bulletList->size(); ++i)
+			for (list<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); ++it)
         	{
-        		BulletEntity* bullet = (*gamestate.bulletList)[i]; 
+        		BulletEntity* bullet = *it; 
         		
         		// @NOTE: Can be removed once delete entities on death is implemented
         		if (!bullet->canBeRemoved)
@@ -432,9 +437,9 @@ int main(int argc, char** argv)
         	// ====================== collision detection ========================
 			// Not perfect, but good enough for now
 
-			for (int j = 0; j < gamestate.entityList->size(); ++j)
+	        for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); ++it)
 	        {
-	        	Entity* a = (*gamestate.entityList)[j];
+	        	Entity* a = *it;
 	        	Entity* player = gamestate.player;
 
 	        	if (a->isCollidable && a != player && player->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
@@ -446,14 +451,17 @@ int main(int argc, char** argv)
 	        	}
 	        }
         	
-	        for (int i = 0; i < gamestate.bulletList->size(); ++i)
+	        for (list<BulletEntity*>::iterator bulletIt = bulletList.begin(); bulletIt != bulletList.end(); bulletIt++)
 	        {
-	        	for (int j = 0; j < gamestate.entityList->size(); ++j)
+	        	for (list<Entity*>::iterator entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
 	        	{
-	        		Entity* a = (*gamestate.entityList)[j];
-	        		BulletEntity* b = (*gamestate.bulletList)[i];
+	        		Entity* a = *entityIt;
+	        		BulletEntity* b = *bulletIt;
 
-	        		if (a->isCollidable && b->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
+	        		if (a->type != EntityType::Player 
+	        			&& a->isCollidable 
+	        			&& b->isCollidable
+	        			&& b->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
 	        		{
 	        			a->debugIsColliding = true;
 	        			b->debugIsColliding = true;
@@ -492,17 +500,17 @@ int main(int argc, char** argv)
 	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	        // @NOTE: Refactor into section that renders entity list
-	        for (int i = 0; i < gamestate.entityList->size(); ++i)
+	        for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
 	        {
-	        	(*gamestate.entityList)[i]->draw(0, vp);
+	        	(*it)->draw(0, vp);
 	        }
 
 	        // @TODO: Make work
 	        terrain.draw(0, vp);
 
-	        for (int i = 0; i < gamestate.bulletList->size(); ++i)
+	        for (list<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
 	        {
-	        	(*gamestate.bulletList)[i]->draw(0, vp);
+	        	(*it)->draw(0, vp);
 	        }
 
 
@@ -515,9 +523,9 @@ int main(int argc, char** argv)
 		        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
 		        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
 
-				for (int i = 0; i < gamestate.entityList->size(); ++i)
+				for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
 	        	{
-	        		Entity* e = (*gamestate.entityList)[i];
+	        		Entity* e = *it;
 	        		if (e->debugIsColliding)
 	        		{
 	        			e->drawBoundingCube(vp, hitColor);

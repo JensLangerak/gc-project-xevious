@@ -15,6 +15,7 @@ public:
 	void onCollision(Entity* entity);
 
 	EntityType type = EntityType::Enemy;
+	glm::vec3 direction;
 };
 
 #endif

@@ -32,8 +32,6 @@ public:
 	// @NOTE: Temporarily for testing only
 	float weaponAngle;
 
-	EntityType type = EntityType::Player;
-
 	glm::vec4 getScreenPosition(glm::mat4 projView);
 protected:
 	// ============= Rendering related ============

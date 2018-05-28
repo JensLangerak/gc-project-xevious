@@ -1,5 +1,5 @@
+#include "entity.h"
 #include "bullet_entity.h"
-
 
 BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 {
@@ -10,6 +10,8 @@ BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 	scale = 0.02;
 	color = glm::vec3(1., 0., 1.);
 	boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+
+	type = EntityType::Bullet;
 }
 
 void BulletEntity::update(double tick, Gamestate* state)
