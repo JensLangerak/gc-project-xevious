@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "entity.h"
 #include "player_entity.h"
 #include "models.h"
 #include "utils.h"
@@ -22,10 +23,13 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 	// @TODO: Tweak until looks right;
 	// @NOTE: Also needs to be transformed into world space
 	relativeLocWeapon = glm::vec3(0., 1.0, 0.);
+	type = EntityType::Player;
+
+
 
 
 	// -------------- Gameplay section ------------------
-	lives = 10;
+	lives = 20;
 }
 
 void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
@@ -36,16 +40,17 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 	switch (action)
 	{
 		case PlayerAction::MOVE_FORWARD:
-			position.z -= movement_amount;
+			movePlayer(0., -movement_amount);
 		break;
 		case PlayerAction::MOVE_BACKWARD:
-			position.z += movement_amount;
+			movePlayer(0., movement_amount);
 		break;
 		case PlayerAction::MOVE_LEFT:
 			position.x -= movement_amount;
+			movePlayer(-movement_amount, 0.);
 		break;
 		case PlayerAction::MOVE_RIGHT:
-			position.x += movement_amount;
+			movePlayer(movement_amount, 0.);
 		break;
 		case PlayerAction::ROLL:
 			// @TODO: Implement "Start animation which is carried out in update"
@@ -60,13 +65,30 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 				BulletEntity* bullet = new BulletEntity(pos, dir);
 
 				state->bulletList->push_back(bullet);
-				std::cout << "added bullet!\n";	
 			}
-			std::cout << "pew pew pew\n";
 		break;
 		default:
 		break;		
 	}
+}
+
+float clamp(float val, float low, float high)
+{
+	if (val > high)
+	{
+		return high;
+	}
+	else if (val < low)
+	{
+		return low;
+	}
+	return val;
+}
+
+void PlayerEntity::movePlayer(float x, float y)
+{
+	position.x = clamp(position.x + x, -1., 1.);
+	position.z = clamp(position.z + y, -1., .5);
 }
 
 glm::mat4 PlayerEntity::getShipTransform()
@@ -102,7 +124,10 @@ glm::mat4 PlayerEntity::getWeaponTransform()
 
 void PlayerEntity::update(double tick, Gamestate* state)
 {
-
+	if (lives == 0)
+	{
+		state->mode = GameMode::Dead;
+	}
 }
 
 void PlayerEntity::onCollision(Entity* entity)

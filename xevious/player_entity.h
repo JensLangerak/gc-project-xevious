@@ -32,8 +32,6 @@ public:
 	// @NOTE: Temporarily for testing only
 	float weaponAngle;
 
-	EntityType type = EntityType::Player;
-
 	glm::vec4 getScreenPosition(glm::mat4 projView);
 protected:
 	// ============= Rendering related ============
@@ -51,6 +49,7 @@ protected:
 	// ============= Gameplay related =============
 	int lives; // Number of lives that the player has before dying
 
+	void movePlayer(float x, float y);
 };
 
 #endif

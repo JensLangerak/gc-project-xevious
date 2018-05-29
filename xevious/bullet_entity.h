@@ -8,7 +8,8 @@ class BulletEntity : public Entity
 {
 public:
 	BulletEntity(glm::vec3 pos, glm::vec3 dir);
-
+	~BulletEntity();
+	
 	void update(double tick, Gamestate* state);
 	void onCollision(Entity* entity);
 

@@ -50,8 +50,12 @@ void Entity::update(double tick, Gamestate* state)
 }
 
 void Entity::onCollision(Entity* entity)
+{    
+}
+
+bool Entity::checkCollision(Entity* entity)
 {
-    
+    return getProjectedBoundingBox().checkIntersection(entity->getProjectedBoundingBox()); 
 }
 
 void Entity::draw(long tick, glm::mat4 projView)
@@ -64,7 +68,7 @@ void Entity::draw(long tick, glm::mat4 projView)
     
     glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(color));
 
-    //models::activateTexture(texture);
+    models::activateTexture(texture);
     models::drawModel(model);
 }
 

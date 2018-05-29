@@ -82,10 +82,16 @@ void BoundingBox::draw(glm::mat4 projView, glm::vec3 drawColor, float height)
 
 bool BoundingBox::checkIntersection(BoundingBox other)
 {
+	// return !(this->topLeft.x + this->dimensions.x < other.topLeft.x
+	// 		|| this->topLeft.x > other.topLeft.x + this->dimensions.x
+	// 		|| this->topLeft.y + this->dimensions.y < other.topLeft.y
+	// 		|| this->topLeft.y > other.topLeft.y + this->dimensions.y);
+
 	return !(this->topLeft.x + this->dimensions.x < other.topLeft.x
-			|| this->topLeft.x > other.topLeft.x + this->dimensions.x
+			|| other.topLeft.x + other.dimensions.x < this->topLeft.x
 			|| this->topLeft.y + this->dimensions.y < other.topLeft.y
-			|| this->topLeft.y > other.topLeft.y + this->dimensions.y);
+			|| other.topLeft.y + other.dimensions.y < this->topLeft.y);
+
 
 	// Box is either to the left, right, bottom or top if the box does not intersect
 	// to the left: rightmost edge is to the left of left edge

@@ -1,6 +1,13 @@
+#include "entity.h"
 #include "bullet_entity.h"
+#include <iostream>
+
+BulletEntity::~BulletEntity()
+{
+}
 
 
+// @TODO(Bug): Something weird happening with collisions not being perfect here
 BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 {
 	position = pos;
@@ -10,6 +17,8 @@ BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 	scale = 0.02;
 	color = glm::vec3(1., 0., 1.);
 	boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+
+	type = EntityType::Bullet;
 }
 
 void BulletEntity::update(double tick, Gamestate* state)
@@ -17,6 +26,8 @@ void BulletEntity::update(double tick, Gamestate* state)
 	// @NOTE: Move velocity into global, or into constructor
 	float velocity = 0.001 * tick;
 	position += direction * velocity;
+
+	// @TODO: Mark for deletion once out of screen
 }
 
 void BulletEntity::onCollision(Entity* entity)

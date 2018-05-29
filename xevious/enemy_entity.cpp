@@ -1,8 +1,8 @@
 #include <iostream>
+#include "entity.h"
 #include "player_entity.h"
 #include "enemy_entity.h"
 #include "utils.h"
-
 
 EnemyEntity::EnemyEntity()
 {
@@ -16,20 +16,21 @@ EnemyEntity::EnemyEntity(glm::vec2 pos)
     color = glm::vec3(0., 1., 1.);
     scale = 0.05;
     boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+    type = EntityType::Enemy;
 }
 
 void EnemyEntity::update(double tick, Gamestate* state)
 {
 	// @NOTE: What height should the ground be?
 	// While above height alpha, spiral every tick by angular velocity, and decrease height
+	float MOVEMENT_SPEED = 0.005;
 
 	// IF: NONDEAD
 	if (isAlive)
 	{
-		float MOVEMENT_SPEED = 0.005;
 		// Move in the direction of player
 		glm::vec3 playerPos = (state->player)->position;
-		glm::vec3 direction = glm::normalize(playerPos - position); 
+		direction = glm::normalize(playerPos - position); 	
 		position += direction * MOVEMENT_SPEED;
 
 		// @TODO: perhaps modify movement with a sine wave, to make behaviour less obvious
@@ -44,15 +45,19 @@ void EnemyEntity::update(double tick, Gamestate* state)
 		orientation.y += angular_velocity * tick;
 		position.y -= falling_velocity * tick;
 
+		position += direction * MOVEMENT_SPEED;
+
 		if (position.y < -1.0)
 		{
 			canBeRemoved = true;
 
 			// Change color to grey to distinguish from alive enemies;
 			color = glm::vec3(.7, .7, .7);
-			std::cout << "Enemy died!!\n";
+			//std::cout << "Enemy died!!\n";
 		}		
 	}
+
+	// @TODO: mark for deletion once out of screen
 }
 
 // @TODO: Implement collision

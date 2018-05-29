@@ -20,12 +20,22 @@ class PlayerEntity;
 class Entity;
 class BulletEntity;
 
+enum class GameMode
+{
+	Menu,
+	Playing,
+	Dead
+};
+
 struct Gamestate
 {
 	PlayerEntity* player;
 	std::vector<Entity*>* entityList;
 	std::vector<BulletEntity*>* bulletList;
 	double aiTimer;
+	double stageTimer = 20000;
+	int stage = 0;
+	GameMode mode = GameMode::Playing; // @TODO: switch to Menu once implemented
 };
 
 // Per-vertex data
@@ -46,6 +56,7 @@ namespace globals {
     extern GLuint boundingBoxVAO;
 }
 
+glm::mat4 getTranslationMatrix(glm::vec3 vecTranslation);
 glm::mat4 getRotationMatrix(double xRot ,double yRot ,double zRot);
 glm::mat4 getScalingMatrix(double scale);
 
