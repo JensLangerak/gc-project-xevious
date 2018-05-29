@@ -60,8 +60,8 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 			{
 				glm::vec3 pos = state->player->position;
 				float angle = state->player->weaponAngle;
-				// @TODO: Fix the math here
-				glm::vec3 dir = glm::vec3(sin(angle), 0., -cos(angle));
+				
+				glm::vec3 dir = glm::normalize(glm::vec3(sin(angle), 0., -cos(angle)));
 				BulletEntity* bullet = new BulletEntity(pos, dir);
 
 				state->bulletList->push_back(bullet);

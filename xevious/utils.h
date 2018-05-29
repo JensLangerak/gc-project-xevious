@@ -35,6 +35,7 @@ struct Gamestate
 	double aiTimer;
 	double stageTimer = 10.;
 	int stage = 0;
+	bool stageReady = false;
 	GameMode mode = GameMode::Playing; // @TODO: switch to Menu once implemented
 };
 

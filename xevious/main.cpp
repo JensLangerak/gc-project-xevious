@@ -213,14 +213,11 @@ void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 	} else if (key == GLFW_KEY_Y)
 	{
 		player->weaponAngle += 0.1;
-	}
-
-	else if (key == GLFW_KEY_Z)
+	} else if (key == GLFW_KEY_0)
 	{
-		player->position.y += 0.05;
-	} else if (key == GLFW_KEY_X)
-	{
-		player->position.y -= 0.1;
+		// @TODO: Implement
+		// Reset gamestate!!
+		// resetGameplay();
 	}
 }
 
@@ -245,14 +242,19 @@ void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 	gamestate->player->weaponAngle = angle + 3.14/2;
 }
 
-
-// @TODO: Factor into different file / class when this becomes too large 
-//      or we need to switch AI's (for different levels etc)
 void veryObviousAI(Gamestate* state, double delta)
 {
-	if (state->stage == 0)
+	if (state->stage == 0 && !state->stageReady)
 	{
+		//  ================ Init level stage ================
+		// @TODO: Implement in case the gamestate has been reset
+		state->stageReady = true;
+	} 
+	else if (state->stage == 0 && state->stageReady)
+	{
+		//  ================ run level stage ================
 		// Every second, release a new Enemy entity into the world
+		state->stageTimer -= delta;
 		if (state->aiTimer <= 0)
 		{
 			// Generate random x position between -1 and 1
@@ -269,16 +271,20 @@ void veryObviousAI(Gamestate* state, double delta)
 			state->aiTimer -= delta;
 		}
 
-		state->stageTimer -= delta;
 		if (state->stageTimer <= 0)
 		{
 			state->stage = 1;
-			std::cout << "Entering stage 1: Boss stage\n";
-
-			BossEntity* boss = new BossEntity();
-			state->entityList->push_back(boss);
-		}        
-	} else if (state->stage == 1)
+			state->stageReady = false;
+		}
+	} 
+	else if (state->stage == 1 && !state->stageReady)
+	{
+		// Init boss stage
+		BossEntity* boss = new BossEntity();
+		state->entityList->push_back(boss);
+		state->stageReady = true;
+	} 
+	else if (state->stage == 1 && state->stageReady)
 	{
 		// Perform boss-fight code
 	}
