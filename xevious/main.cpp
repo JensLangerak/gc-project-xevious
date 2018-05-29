@@ -480,11 +480,6 @@ int main(int argc, char** argv)
 	clock_t timeStartFrame = clock();
 	clock_t timeEndFrame = clock();
 
-	MeshSimplification simple = MeshSimplification(models::dragon.vertices, 10);
-	models::loadSimple(simple.simplifiedMesh);
-//    other.model = models::ModelType::Simple;
-
-
 	// @TODO: Fix
 	BoundingBox gamebox = BoundingBox(-1.5, -5.5, 3., 10.);
 	gamebox.print();

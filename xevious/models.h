@@ -21,8 +21,11 @@ namespace models {
 
         PlayerShip,
         PlayerGun,
-        StarEnemy
+        StarEnemy,
 
+        BossDetailLevel1,
+        BossDetailLevel2,
+        BossDetailLevel3
     };
     
     enum class Textures{
@@ -40,6 +43,10 @@ namespace models {
     extern Model playerShip;
     extern Model starEnemy;
     extern Model david;
+
+    extern Model bossDetailLevel1;
+    extern Model bossDetailLevel2;
+    extern Model bossDetailLevel3;
 
     BoundingCube makeBoundingCube(std::vector<Vertex> vertices);
 

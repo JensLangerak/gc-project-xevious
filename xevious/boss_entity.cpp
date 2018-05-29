@@ -11,7 +11,7 @@ BossEntity::BossEntity()
 	// @NOTE: Using the david model
 	// @TODO: Constructing the mesh simplification here is bad, should do it somewhere else!!!
 	//level1 = new MeshSimplification(models::david.vertices, 20);
-	scale = 0.2;
+	scale = 0.3;
 	radius = 2.;
 	centerOffsets[0] = glm::vec3(1., 0., 0.) * radius;
 	centerOffsets[1] = glm::vec3(-1., 0., 0.) * radius;
@@ -47,11 +47,14 @@ bool BossEntity::checkCollision(Entity* entity)
 	// check collision for all four entities
 	for (int i = 0; i < 4; ++i)
 	{
-		BoundingBox box = boundingCube.getProjectedBoundingBox(getHeadTransformMatrix(i));
-		if (box.checkIntersection(entity->getProjectedBoundingBox()))
+		if (lives[i] > 0)
 		{
-			std::cout << "Hit the boss!\n";
-			return true;
+			BoundingBox box = boundingCube.getProjectedBoundingBox(getHeadTransformMatrix(i));
+			if (box.checkIntersection(entity->getProjectedBoundingBox()))
+			{
+				std::cout << "Hit the boss!\n";
+				return true;
+			}	
 		}
 	}
 	return false;
@@ -66,7 +69,24 @@ void BossEntity::onCollision(Entity* entity)
 		{
 			lives[i] -= 1;
 			// @TODO: Fix
-			models[i] = models::ModelType::StarEnemy;
+
+		switch (lives[i])
+			{
+				case 3:
+					models[i] = models::ModelType::BossDetailLevel1;
+				break;
+				case 2:
+					models[i] = models::ModelType::BossDetailLevel2;
+				break; 
+				case 1:
+					models[i] = models::ModelType::BossDetailLevel3;
+				// Mark grey red 
+				break;
+				case 0:
+				default:
+				// Delete head
+				break;
+			}
 		}
 	}
 }

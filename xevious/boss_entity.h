@@ -16,9 +16,9 @@ public:
 	void onCollision(Entity* entity);
 
 	glm::vec3 centerOffsets[4];
-	int lives[4] = {5, 5, 5, 5};
+	int lives[4] 				= {4, 4, 4, 4};
 	models::ModelType models[4] = {models::ModelType::Dragon, models::ModelType::Dragon, models::ModelType::Dragon, models::ModelType::Dragon};
-
+	glm::vec3 colors[4];
 	float radius = 1.0;
 	float accTime = .0;
 	int stage = 0;
