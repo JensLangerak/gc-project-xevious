@@ -437,11 +437,11 @@ int main(int argc, char** argv)
   
     mainLight.aspect = WIDTH / (float)HEIGHT;
     mainLight.position = glm::vec3(-2.f,100.5f, -2.1f);
-    mainLight.forward = glm::vec3(2.0f,-100.f, 2.f);
-    mainLight.up = glm::vec3(0.f, 0.f, -1.0);
+    mainLight.forward = glm::vec3(2.3f,-100.f, 1.6f);
+    mainLight.up = glm::vec3(-0.f, 0.0f, -5.0);
     mainLight.far = 120.f;
     mainLight.near = 90.01;
-    mainLight.useOrhogonal = false;//simulate far away;
+    mainLight.useOrhogonal = true;//simulate far away;
     mainLight.width = 3.5;
     mainLight.height = 3.5;
 
@@ -654,11 +654,11 @@ int main(int argc, char** argv)
 			{
 				(*gamestate.entityList)[i]->draw(0, vp);
 			}
-       //     terrain.draw(0, vp);
+            terrain.draw(0, vp);
 
 			// Unbind the off-screen framebuffer
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//			glfwSwapBuffers(window);
+		//	glfwSwapBuffers(window);
 		}
 //continue;
 
