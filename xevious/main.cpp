@@ -366,6 +366,9 @@ int main(int argc, char** argv)
 	camera.aspect = WIDTH / (float)HEIGHT;
 	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
 	camera.forward  = -camera.position;
+    camera.useOrhogonal = true;
+    camera.width = 2;
+    camera.height = 2;
 
 	mainLight.aspect = WIDTH / (float)HEIGHT;
 	mainLight.position = glm::vec3(-30.f, 100.f, 10.f);
