@@ -226,7 +226,7 @@ namespace models {
     {    
         PPMImage image(filename);
         glGenTextures(1, &textures[index]);
-        glActiveTexture(GL_TEXTURE_2D +  textures[index]);
+        glActiveTexture( GL_TEXTURE0 +  textures[index]);
         glBindTexture(GL_TEXTURE_2D, textures[index]);
         gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, image.sizeX, image.sizeY, 
 		GL_RGB, GL_UNSIGNED_BYTE, image.data);
