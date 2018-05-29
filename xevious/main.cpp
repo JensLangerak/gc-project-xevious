@@ -19,6 +19,7 @@
 #include <ctime>
 #include <cmath>
 #include <list>
+#include <vector>
 
 #include "models.h"
 #include "utils.h"
@@ -30,8 +31,9 @@
 #include "player_entity.h"
 #include "enemy_entity.h"
 #include "bullet_entity.h"
-
-using std::list;
+#include "boss_entity.h"
+// using std::list;
+using std::vector;
 
 // Configuration
 const int WIDTH = 800;
@@ -140,7 +142,7 @@ void setupDebugging()
 
 	std::string fragmentShaderCode = readFile("shaders/boundingBoxDebug.frag");
 	const char* fragmentShaderCodePtr = fragmentShaderCode.data();
- 
+
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
 	glCompileShader(fragmentShader);
@@ -171,7 +173,7 @@ void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
 	// @TEST: Test moving bounding box1
 	if (action != GLFW_PRESS && action != GLFW_REPEAT)
-	{	
+	{   
 		// @TODO(Berend): change into something more smooth;
 		return;
 	}
@@ -243,30 +245,46 @@ void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 
 
 // @TODO: Factor into different file / class when this becomes too large 
-//		or we need to switch AI's (for different levels etc)
+//      or we need to switch AI's (for different levels etc)
 void veryObviousAI(Gamestate* state, double delta)
 {
-	// Every second, release a new Enemy entity into the world
-	if (state->aiTimer <= 0)
+	if (state->stage == 0)
 	{
-		// Generate random x position between -1 and 1
-		float randVal = (float) rand() / (float) RAND_MAX;
-		float randX = randVal * 2. - 1.;
+		// Every second, release a new Enemy entity into the world
+		if (state->aiTimer <= 0)
+		{
+			// Generate random x position between -1 and 1
+			float randVal = (float) rand() / (float) RAND_MAX;
+			float randX = randVal * 2. - 1.;
 
-		EnemyEntity* enemy = new EnemyEntity(glm::vec2(randX, -1.));
-		state->entityList->push_back(enemy);
+			EnemyEntity* enemy = new EnemyEntity(glm::vec2(randX, -1.));
+			state->entityList->push_back(enemy);
 
-		// Reset timer
-		state->aiTimer = 1000.0;
-	} else
+			// Reset timer
+			state->aiTimer = 1000.0;
+		} else
+		{
+			state->aiTimer -= delta;
+		}
+
+		state->stageTimer -= delta;
+		if (state->stageTimer <= 0)
+		{
+			state->stage = 1;
+			std::cout << "Entering stage 1: Boss stage\n";
+
+			BossEntity* boss = new BossEntity();
+			state->entityList->push_back(boss);
+		}        
+	} else if (state->stage == 1)
 	{
-		state->aiTimer -= delta;
+		// Perform boss-fight code
 	}
 }
 
 int main(int argc, char** argv)
 {
- 	if (!glfwInit()) {
+	if (!glfwInit()) {
 		std::cerr << "Failed to initialize GLFW!" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -278,7 +296,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Xevious", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Xevious", nullptr, nullptr);
 	if (!window) {
 		std::cerr << "Failed to create OpenGL context!" << std::endl;
 		return EXIT_FAILURE;
@@ -297,10 +315,10 @@ int main(int argc, char** argv)
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);    
 
-    setupDebugging();
+	setupDebugging();
 
 
-    globals::mainProgram = glCreateProgram();
+	globals::mainProgram = glCreateProgram();
 	////////////////// Load and compile main shader program
 	{
 		std::string vertexShaderCode = readFile("shaders/shader.vert");
@@ -312,7 +330,7 @@ int main(int argc, char** argv)
 
 		std::string fragmentShaderCode = readFile("shaders/shader.frag");
 		const char* fragmentShaderCodePtr = fragmentShaderCode.data();
- 
+
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
 		glCompileShader(fragmentShader);
@@ -322,230 +340,285 @@ int main(int argc, char** argv)
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
 		}
-                
+
 		// Combine vertex and fragment shaders into single shader program
 		glAttachShader(globals::mainProgram, vertexShader);
 		glAttachShader(globals::mainProgram, fragmentShader);
 		glLinkProgram(globals::mainProgram);
-    
+
 		if (!checkProgramErrors(globals::mainProgram)) {
 			std::cerr << "Main program failed to link!" << std::endl;
 			std::cout << "Press enter to close."; getchar();
 			return EXIT_FAILURE;
-		}		
+		}       
 	}
 
-    
+	
 	// Load vertices of model
-    if (!models::loadModels())
-    {
-        std::cerr << "Program failed to load!" << std::endl;
+	if (!models::loadModels())
+	{
+		std::cerr << "Program failed to load!" << std::endl;
 		return EXIT_FAILURE;   
-    }
+	}
 
-    // @TODO: possibly change to top-down orthographic camera?
-    models::loadTextures();
-    camera.aspect = WIDTH / (float)HEIGHT;
+	// @TODO: possibly change to top-down orthographic camera?
+	models::loadTextures();
+	camera.aspect = WIDTH / (float)HEIGHT;
 	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
 	camera.forward  = -camera.position;
-  
-    mainLight.aspect = WIDTH / (float)HEIGHT;
+
+	mainLight.aspect = WIDTH / (float)HEIGHT;
 	mainLight.position = glm::vec3(-30.f, 100.f, 10.f);
 	mainLight.forward  = -mainLight.position;
-    
-    // Enable depth testing
+	
+	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
 	// ================== Setup Gamestate ================
-    // @NOTE(Dirty): This is a dirty dirty hack
-    // Reinitialize player to correctly calculate bounding cube
+	// @NOTE(Dirty): This is a dirty dirty hack
+	// Reinitialize player to correctly calculate bounding cube
 	gamestate.player = new PlayerEntity();
-	gamestate.entityList = new std::list<Entity*>();
-	gamestate.bulletList = new std::list<BulletEntity*>();
+	gamestate.entityList = new std::vector<Entity*>();
+	gamestate.bulletList = new std::vector<BulletEntity*>();
 
 	player = gamestate.player;
 	gamestate.entityList->push_back(player);
 
-    EnemyEntity* testEnemy = new EnemyEntity();
-    testEnemy->position = glm::vec3(.0, .0, -1.);
-    testEnemy->model = models::ModelType::StarEnemy;
-    testEnemy->color = glm::vec3(0., 1., 1.);
-    testEnemy->scale = 0.05;
-    testEnemy->boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
-    gamestate.entityList->push_back(testEnemy);
+	EnemyEntity* testEnemy = new EnemyEntity();
+	testEnemy->position = glm::vec3(.0, .0, -1.);
+	testEnemy->model = models::ModelType::StarEnemy;
+	testEnemy->color = glm::vec3(0., 1., 1.);
+	testEnemy->scale = 0.05;
+	testEnemy->boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+	gamestate.entityList->push_back(testEnemy);
 
-    // @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
-    models::generateTerrain(30, 30, 100, 100);
-    
-    Entity terrain;
-    terrain.model = models::ModelType::Terrain;
-    terrain.texture = models::Textures::Sand;
-    terrain.position =  glm::vec3(0.,-10.,-10.);
+	// @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
+	models::generateTerrain(30, 30, 100, 100);
+	
+	Entity terrain;
+	terrain.model = models::ModelType::Terrain;
+	terrain.texture = models::Textures::Sand;
+	terrain.position =  glm::vec3(0.,-10.,-10.);
 
-    clock_t timeStartFrame = clock();
-    clock_t timeEndFrame = clock();
+	clock_t timeStartFrame = clock();
+	clock_t timeEndFrame = clock();
 
-    MeshSimplification simple = MeshSimplification(models::dragon.vertices, 10);
-    models::loadSimple(simple.simplifiedMesh);
+	MeshSimplification simple = MeshSimplification(models::dragon.vertices, 10);
+	models::loadSimple(simple.simplifiedMesh);
 //    other.model = models::ModelType::Simple;
 
-	while (!glfwWindowShouldClose(window)) 
-    {
-        glfwPollEvents();
-       	timeStartFrame = timeEndFrame;
-        timeEndFrame = clock();
-        double timeDelta = difftime(timeEndFrame, timeStartFrame);
-        //std::cout << "Timedelta: " << timeDelta << "\n"; 
-        //std::cout << "FPS: " << timeDelta << std::endl; 
 
+	// @TODO: Fix
+	BoundingBox gamebox = BoundingBox(-1.5, -5.5, 3., 10.);
+	gamebox.print();
+	while (!glfwWindowShouldClose(window)) 
+	{
+		glfwPollEvents();
+		timeStartFrame = timeEndFrame;
+		timeEndFrame = clock();
+		double timeDelta = difftime(timeEndFrame, timeStartFrame);
+		//std::cout << "Timedelta: " << timeDelta << "\n"; 
+		//std::cout << "FPS: " << timeDelta << std::endl; 
 
 		// @NOTE: For convenience sake
-		list<Entity*> entityList = *(gamestate.entityList);
-		list<BulletEntity*> bulletList = *(gamestate.bulletList);
+		vector<Entity*> entityList = *(gamestate.entityList);
+		vector<BulletEntity*> bulletList = *(gamestate.bulletList);
 		// Update section
+
+		if (gamestate.mode == GameMode::Playing)
 		{
+			// filter dead entities
+			// @NOTE: Can be moved into update section if debugging isn't necessary anymore
+			for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end();)
+			{
+				Entity* e = *it;
+				// @TODO(BUG): Resource leak
+				if (e->canBeRemoved || !e->getProjectedBoundingBox().checkIntersection(gamebox)) 
+				{
+					it = entityList.erase(it);
+				} else {
+					++it;
+				}     
+			}           
+			for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end();)
+			{
+				BulletEntity* bullet = *it; 
+			    
+			    // @TODO(BUG): Resource leak
+				if (bullet->canBeRemoved)
+				{
+					it = bulletList.erase(it);
+				} else
+				{
+					++it;
+				}
+			}
+
 			// ====================== update entities ========================
 			// Iterate over entity list and update each entity;
+			//std::cout << "update start\n";
+			for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end();)
+			{
+				Entity* e = *it;
+				e->debugIsColliding = false;
 
-			for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); ++it)
-        	{
-        		Entity* e = *it;
-        		e->debugIsColliding = false;
-        		
-        		// @NOTE: Can be removed once delete entities on death is implemented
-        		if (!e->canBeRemoved)
-        		{
-        			e->update(timeDelta, &gamestate);	
-        		}
-        	}
+				// @NOTE: Can be removed once delete entities on death is implemented
+				if (!e->getProjectedBoundingBox().checkIntersection(gamebox))
+				{
+					e->canBeRemoved = true; 
+				}
 
-        	// Update bullets @NOTE: I know this can be done better, but this is temporarily to prevent speed slowdowns
-			for (list<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); ++it)
-        	{
-        		BulletEntity* bullet = *it; 
-        		
-        		// @NOTE: Can be removed once delete entities on death is implemented
-        		if (!bullet->canBeRemoved)
-        		{
-        			bullet->update(timeDelta, &gamestate);	
-        		}
-        	}
+				// @TODO(BUG): Resource leak
+				e->update(timeDelta, &gamestate);
+				// @TODO: Fix
+				{
+					++it;
+				}
+			}
 
-        	// ====================== filter dead entities ========================
+			// Update bullets @NOTE: I know this can be done better, but this is temporarily to prevent speed slowdowns
+			for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end();)
+			{
+				BulletEntity* bullet = *it; 
+
+				// @TODO(BUG): Resource leak
+				if (!bullet->getProjectedBoundingBox().checkIntersection(gamebox))
+				{
+					bullet->canBeRemoved = true;
+				}
+
+				bullet->update(timeDelta, &gamestate);
+				{
+					++it;
+				}
+			}
+
+			// ====================== filter dead entities ========================
 			// @TODO: Delete entities marked dead (in both entityList and bulletList)!!!!!!
-
-        	// ====================== collision detection ========================
+			// ====================== collision detection ========================
 			// Not perfect, but good enough for now
 
-	        for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); ++it)
-	        {
-	        	Entity* a = *it;
-	        	Entity* player = gamestate.player;
+			for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); ++it)
+			{
+				Entity* a = *it;
+				Entity* player = gamestate.player;
 
-	        	if (a->isCollidable && a != player && player->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
-	        	{
-        			a->debugIsColliding = true;
-        			player->debugIsColliding = true;
-        			a->onCollision(player);
+				// @TODO: Do bullets have the correct bounding cubes?
+				if (a->isCollidable && a != player && player->checkCollision(a))
+				{
+					a->debugIsColliding = true;
+					player->debugIsColliding = true;
+					a->onCollision(player);
 					player->onCollision(a);
-	        	}
-	        }
-        	
-	        for (list<BulletEntity*>::iterator bulletIt = bulletList.begin(); bulletIt != bulletList.end(); bulletIt++)
-	        {
-	        	for (list<Entity*>::iterator entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
-	        	{
-	        		Entity* a = *entityIt;
-	        		BulletEntity* b = *bulletIt;
+				}
+			}
 
-	        		if (a->type != EntityType::Player 
-	        			&& a->isCollidable 
-	        			&& b->isCollidable
-	        			&& b->getProjectedBoundingBox().checkIntersection(a->getProjectedBoundingBox()))
-	        		{
-	        			a->debugIsColliding = true;
-	        			b->debugIsColliding = true;
-	        			a->onCollision(b);
-	        			b->onCollision(a);
-	        		}
-	        	}
-	        }
+			for (vector<BulletEntity*>::iterator bulletIt = bulletList.begin(); bulletIt != bulletList.end(); bulletIt++)
+			{
+				for (vector<Entity*>::iterator entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
+				{
+					Entity* a = *entityIt;
+					BulletEntity* b = *bulletIt;
 
-        	// ====================== Run AI ========================
-        	veryObviousAI(&gamestate, timeDelta);
-        	// update mouse position
-        	updateMouse(window, camera.vpMatrix(), &gamestate);
+				// @TODO(Dirty): Ugly hack to check for player here
+					if (a->type != EntityType::Player 
+						&& a->isCollidable 
+						&& b->isCollidable
+						&& a->checkCollision(b))	// @IMPORTANT: order is important because of overloading functions
+					{
+						a->debugIsColliding = true;
+						b->debugIsColliding = true;
+						a->onCollision(b);
+						b->onCollision(a);
+					}
+				}
+			}
+
+			// ====================== Run AI ========================
+			veryObviousAI(&gamestate, timeDelta);
+			// update mouse position
+			updateMouse(window, camera.vpMatrix(), &gamestate);
 		}
 
 		// Render section
-    	{
+		{
 			// ====================== game render section ========================
-    		// @NOTE: Do we need multiple shaders?
-	        // Bind the shader
+			// Bind the shader
 			glUseProgram(globals::mainProgram);
-			
+
 			updateCamera(camera); //misschien niet nodig
-	        glm::mat4 vp = camera.vpMatrix();
+			glm::mat4 vp = camera.vpMatrix();
 
-			//	glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+			//  glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
-	        glm::mat4 lightMVP = mainLight.vpMatrix();
-	        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
-	  
-	        // Set view position
+			glm::mat4 lightMVP = mainLight.vpMatrix();
+			glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
+
+			// Set view position
 			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
 
-	        glClearDepth(1.0f);  
-	        glClearColor(0.f, 0.f, 0.f, 1.0f);
-	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearDepth(1.0f);  
+			glClearColor(0.f, 0.f, 0.f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	        // @NOTE: Refactor into section that renders entity list
-	        for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
-	        {
-	        	(*it)->draw(0, vp);
-	        }
+			// @NOTE: Refactor into section that renders entity list
+			for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
+			{
+				(*it)->draw(0, vp);
+			}
 
-	        // @TODO: Make work
-	        terrain.draw(0, vp);
+            terrain.draw(0, vp);
 
-	        for (list<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
-	        {
-	        	(*it)->draw(0, vp);
-	        }
+			for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
+			{
+				(*it)->draw(0, vp);
+			}
 
-
-	        // ====================== debug render section =======================
-	        if (globals::debugMode)
-	        {
-		        // Set debug program shader
+			// ====================== debug render section =======================
+			if (globals::debugMode)
+			{
+				// Set debug program shader
 				glUseProgram(globals::debugProgram);
 
-		        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
-		        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
+				glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
+				glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
 
-				for (list<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
-	        	{
-	        		Entity* e = *it;
-	        		if (e->debugIsColliding)
-	        		{
-	        			e->drawBoundingCube(vp, hitColor);
-	        		}
-	        		else 
-	        		{
-	        			e->drawBoundingCube(vp, normColor);
-	        		}
-	        	}
-	        }
+				for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
+				{
+					Entity* e = *it;
+					if (e->debugIsColliding)
+					{
+						e->drawBoundingCube(vp, hitColor);
+					}
+					else 
+					{
+						e->drawBoundingCube(vp, normColor);
+					}
+				}
+
+				for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
+				{
+					BulletEntity* bullet = *it;
+					if (bullet->debugIsColliding)
+					{
+						bullet->drawBoundingCube(vp, hitColor);
+					}
+					else 
+					{
+						bullet->drawBoundingCube(vp, normColor);
+					}
+				}
+			}
 
 			//simple.drawGrid(vp * other.getTransformationMatrix());
-	        glfwSwapBuffers(window);
-	        //sleep();
-    	}
-    }
-    
-    glfwDestroyWindow(window);
+			glfwSwapBuffers(window);
+			//sleep();
+		}
+	}
+	
+	glfwDestroyWindow(window);
 	
 	glfwTerminate();
-    
-    return 0;
+	
+	return 0;
 }

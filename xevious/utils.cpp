@@ -9,6 +9,18 @@ namespace globals {
     GLuint boundingBoxVAO;
 }
 
+glm::mat4 getTranslationMatrix(glm::vec3 vecTranslation)
+{
+    glm::vec4 vec4Translation = glm::vec4(vecTranslation, 1.0);
+    glm::mat4 translation = glm::mat4();
+    translation[0][0] = 1.;
+    translation[1][1] = 1.;
+    translation[2][2] = 1.;
+    translation[3] = vec4Translation;
+    return translation;
+}
+
+
 glm::mat4 getRotationMatrix(double xRot ,double yRot ,double zRot)
 {
 	glm::mat4 model = glm::mat4();

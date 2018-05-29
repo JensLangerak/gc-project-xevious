@@ -31,6 +31,8 @@ namespace models {
     Model starEnemy;
     Model terrain;
     Model simple;
+    Model david;
+
     std::vector<GLuint> textures;
 
     BoundingCube makeBoundingCube(std::vector<Vertex> vertices)
@@ -165,6 +167,7 @@ namespace models {
         bool result2 = loadModel(playerShip, "resources/ship.obj");
         bool result3 = loadModel(starEnemy, "resources/starship.obj");   
         bool result4 = loadModel(playerGun, "resources/cannon.obj");
+        bool result5 = loadModel(david, "resources/dragon.obj");
 
         return result && result2 && result3 && result4;
     }

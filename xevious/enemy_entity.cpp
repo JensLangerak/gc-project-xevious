@@ -53,9 +53,11 @@ void EnemyEntity::update(double tick, Gamestate* state)
 
 			// Change color to grey to distinguish from alive enemies;
 			color = glm::vec3(.7, .7, .7);
-			std::cout << "Enemy died!!\n";
+			//std::cout << "Enemy died!!\n";
 		}		
 	}
+
+	// @TODO: mark for deletion once out of screen
 }
 
 // @TODO: Implement collision

@@ -15,12 +15,13 @@
 namespace models {
     enum class ModelType{
         Dragon,
+        David,
         Terrain,
         Simple,
 
         PlayerShip,
         PlayerGun,
-        StarEnemy,
+        StarEnemy
 
     };
     
@@ -38,6 +39,7 @@ namespace models {
     extern Model dragon;
     extern Model playerShip;
     extern Model starEnemy;
+    extern Model david;
 
     BoundingCube makeBoundingCube(std::vector<Vertex> vertices);
 

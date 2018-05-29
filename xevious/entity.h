@@ -44,6 +44,8 @@ public:
 
     virtual void update(double tick, Gamestate* state);
     virtual void onCollision(Entity* entity);
+    virtual bool checkCollision(Entity* entity);
+	        
     virtual BoundingBox getProjectedBoundingBox();      // @NOTE: Might eventually be replaced by checkCollision() method 
 
     // ============= Rendering related ============

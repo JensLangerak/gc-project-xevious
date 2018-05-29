@@ -49,6 +49,7 @@ protected:
 	// ============= Gameplay related =============
 	int lives; // Number of lives that the player has before dying
 
+	void movePlayer(float x, float y);
 };
 
 #endif
