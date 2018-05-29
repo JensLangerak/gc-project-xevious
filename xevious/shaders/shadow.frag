@@ -27,5 +27,5 @@ in vec3 fragNormal; // World-space normal
 
 void main()
 {
-gl_FragColor = vec4(gl_FragCoord.z);
+    gl_FragColor = vec4(gl_FragCoord.z);
 }

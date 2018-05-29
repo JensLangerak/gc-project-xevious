@@ -18,8 +18,4 @@ out vec3 fragNormal;
 void main() {
 	// Transform 3D position into on-screen position
     gl_Position = mvp * vec4(pos, 1.0);
-
-    // Pass position and normal through to fragment shader
-    fragPos = vec3(model * vec4(pos, 1.0));
-    fragNormal = normal;
 }

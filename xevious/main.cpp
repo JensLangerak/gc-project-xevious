@@ -38,6 +38,8 @@ using std::vector;
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 800;
+const int SHADOWTEX_WIDTH  = 1024;
+const int SHADOWTEX_HEIGHT = 1024;
 
 Gamestate gamestate;
 
@@ -282,6 +284,111 @@ void veryObviousAI(Gamestate* state, double delta)
 	}
 }
 
+bool createProgram(GLuint & program, const char *filenameVertex,  const char *filenameFragment)
+{
+    std::string vertexShaderCode = readFile(filenameVertex);
+    const char* vertexShaderCodePtr = vertexShaderCode.data();
+
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
+    glCompileShader(vertexShader);
+
+    std::string fragmentShaderCode = readFile(filenameFragment);
+    const char* fragmentShaderCodePtr = fragmentShaderCode.data();
+
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
+    glCompileShader(fragmentShader);
+
+    if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
+        std::cerr << "Shader(s) failed to compile!" << std::endl;
+        std::cout << "Press enter to close.";
+        getchar();
+        return false;
+    }
+
+    // Combine vertex and fragment shaders into single shader program
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    if (!checkProgramErrors(program)) {
+        std::cerr << "Main program failed to link!" << std::endl;
+        std::cout << "Press enter to close."; getchar();
+        return false;
+    }
+
+    return true;
+}
+
+GLuint createTexture(){
+    GLuint texShadow;
+
+    glGenTextures(1, &texShadow);
+    glActiveTexture(GL_TEXTURE_2D + texShadow);
+    glBindTexture(GL_TEXTURE_2D, texShadow);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+    // Set behaviour for when texture coordinates are outside the [0, 1] range
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Set interpolation for texture sampling (GL_NEAREST for no interpolation)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    return texShadow;
+}
+
+bool createFramebuffer(GLuint &framebuffer, GLuint texture) {
+//////////////////// Create framebuffer for extra texture
+    glGenFramebuffers(1, &framebuffer);
+
+/////////////////// Set shadow texure as depth buffer for this framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        return false;
+    return true;
+}
+
+void calculateShadowMap(GLuint &framebuffer, Camera & light)
+{
+    // Bind the off-screen framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Clear the shadow map and set needed options
+    glClearDepth(1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    // Bind the shader
+    glUseProgram(globals::shadowProgram);
+
+
+    // Set viewport size
+    glViewport(0, 0, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT);
+    glm::mat4 vp = light.vpMatrix();
+
+    glUniformMatrix4fv(glGetUniformLocation(globals::shadowProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(vp));
+
+
+    // Set view position
+    glUniform3fv(glGetUniformLocation(globals::shadowProgram, "viewPos"), 1, glm::value_ptr(light.position));
+
+    // Execute draw command
+    for (int i = 0; i < gamestate.entityList->size(); ++i)
+    {
+        (*gamestate.entityList)[i]->draw(0, vp);
+    }
+    //    terrain.draw(0, vp);
+
+    // Unbind the off-screen framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 int main(int argc, char** argv)
 {
 	if (!glfwInit()) {
@@ -317,105 +424,23 @@ int main(int argc, char** argv)
 
 	setupDebugging();
 
-
-	globals::mainProgram = glCreateProgram();
-	////////////////// Load and compile main shader program
-	{
-		std::string vertexShaderCode = readFile("shaders/shader.vert");
-		const char* vertexShaderCodePtr = vertexShaderCode.data();
-
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
-		glCompileShader(vertexShader);
-
-		std::string fragmentShaderCode = readFile("shaders/shader.frag");
-		const char* fragmentShaderCodePtr = fragmentShaderCode.data();
-
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
-		glCompileShader(fragmentShader);
-
-		if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
-			std::cerr << "Shader(s) failed to compile!" << std::endl;
-			std::cout << "Press enter to close."; getchar();
+    globals::mainProgram = glCreateProgram();
+	if (!createProgram(globals::mainProgram, "shaders/shader.vert", "shaders/shader.frag"))
 			return EXIT_FAILURE;
-		}
 
-		// Combine vertex and fragment shaders into single shader program
-		glAttachShader(globals::mainProgram, vertexShader);
-		glAttachShader(globals::mainProgram, fragmentShader);
-		glLinkProgram(globals::mainProgram);
 
-		if (!checkProgramErrors(globals::mainProgram)) {
-			std::cerr << "Main program failed to link!" << std::endl;
-			std::cout << "Press enter to close."; getchar();
-			return EXIT_FAILURE;
-		}       
-	}
+	globals::shadowProgram = glCreateProgram();
+	if (!createProgram(globals::shadowProgram, "shaders/shadow.vert", "shaders/shadow.frag"))
+		return EXIT_FAILURE;
 
-    globals::shadowProgram = glCreateProgram();
-    ////////////////// Load and compile shadow shader program
-    {
-        std::string vertexShaderCode = readFile("shaders/shadow.vert");
-        const char* vertexShaderCodePtr = vertexShaderCode.data();
-
-        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
-        glCompileShader(vertexShader);
-
-        std::string fragmentShaderCode = readFile("shaders/shadow.frag");
-        const char* fragmentShaderCodePtr = fragmentShaderCode.data();
-
-        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
-        glCompileShader(fragmentShader);
-
-        if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
-            std::cerr << "Shader(s) failed to compile!" << std::endl;
-            return EXIT_FAILURE;
-        }
-
-        // Combine vertex and fragment shaders into single shader program
-        glAttachShader(globals::shadowProgram, vertexShader);
-        glAttachShader(globals::shadowProgram, fragmentShader);
-        glLinkProgram(globals::shadowProgram);
-
-        if (!checkProgramErrors(globals::shadowProgram)) {
-            std::cerr << "Shadow program failed to link!" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
 
 	//////////////////// Create Shadow Texture
-	GLuint texShadow;
-	const int SHADOWTEX_WIDTH  = 1024;
-	const int SHADOWTEX_HEIGHT = 1024;
-	glGenTextures(1, &texShadow);
-	glActiveTexture(GL_TEXTURE_2D + texShadow);
-	glBindTexture(GL_TEXTURE_2D, texShadow);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-
-	// Set behaviour for when texture coordinates are outside the [0, 1] range
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GLuint texShadow = createTexture();
 
 	//////////////////// Create framebuffer for extra texture
 	GLuint framebuffer = 0;
-	glGenFramebuffers(1, &framebuffer);
-
-	/////////////////// Set shadow texure as depth buffer for this framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texShadow, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (!createFramebuffer(framebuffer, texShadow))
         return false;
-
 
 	// Load vertices of model
 	if (!models::loadModels())
@@ -424,16 +449,17 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;   
 	}
 
-	// @TODO: possibly change to top-down orthographic camera?
 	models::loadTextures();
+
+
 	camera.aspect = WIDTH / (float)HEIGHT;
-	camera.position = glm::vec3(.3f,2.f, -0.3f); //TODO fix should be 0,2,0
+	camera.position = glm::vec3(.0f,2.f, -0.0f); //TODO fix should be 0,2,0
 	camera.forward = glm::vec3(0.f, -1.0f, 0.f);
 	camera.up = glm::vec3(0.f,0.f,-1.f);
 	//camera.forward  = -camera.position;
     camera.useOrhogonal = true;
-    camera.width = 3;
-    camera.height = 3;
+    camera.width = 2.3;
+    camera.height = 2.3;
   
     mainLight.aspect = WIDTH / (float)HEIGHT;
     mainLight.position = glm::vec3(-2.f,100.5f, -2.1f);
@@ -622,44 +648,10 @@ int main(int argc, char** argv)
 
 
 		//shadow
+        calculateShadowMap(framebuffer, mainLight);
 
-		{
-			// Bind the off-screen framebuffer
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-			// Clear the shadow map and set needed options
-			glClearDepth(1.0f);
-			glClear(GL_DEPTH_BUFFER_BIT);
-			glEnable(GL_DEPTH_TEST);
-
-			// Bind the shader
-			glUseProgram(globals::shadowProgram);
-
-			glm::mat4 vp = mainLight.vpMatrix();
-			// Set viewport size
-			glViewport(0, 0, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT);
-
-
-
-			// .... HERE YOU MUST ADD THE CORRECT UNIFORMS FOR RENDERING THE SHADOW MAP
-
-			glUniformMatrix4fv(glGetUniformLocation(globals::shadowProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(vp));
-
-
-			// Set view position
-			glUniform3fv(glGetUniformLocation(globals::shadowProgram, "viewPos"), 1, glm::value_ptr(mainLight.position));
-
-			// Execute draw command
-			for (int i = 0; i < gamestate.entityList->size(); ++i)
-			{
-				(*gamestate.entityList)[i]->draw(0, vp);
-			}
-            terrain.draw(0, vp);
-
-			// Unbind the off-screen framebuffer
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//	glfwSwapBuffers(window);
-		}
+
 //continue;
 
 		// Render section
@@ -667,7 +659,7 @@ int main(int argc, char** argv)
 			// ====================== game render section ========================
 			// Bind the shader
 			glUseProgram(globals::mainProgram);
-
+			glViewport(0, 0, WIDTH, HEIGHT);
             glClearDepth(1.0f);
             glClear(GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);
@@ -675,7 +667,6 @@ int main(int argc, char** argv)
             glBindTexture(GL_TEXTURE_2D, texShadow);
             glUniform1i(glGetUniformLocation(globals::mainProgram, "texShadow"), texShadow);
 
-		//	updateCamera(camera); //misschien niet nodig
 			glm::mat4 vp = camera.vpMatrix();
 
 			//  glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
