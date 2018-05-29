@@ -8,9 +8,6 @@
 
 BossEntity::BossEntity()
 {
-	// @NOTE: Using the david model
-	// @TODO: Constructing the mesh simplification here is bad, should do it somewhere else!!!
-	//level1 = new MeshSimplification(models::david.vertices, 20);
 	scale = 0.3;
 	radius = 2.;
 	centerOffsets[0] = glm::vec3(1., 0., 0.) * radius;
@@ -22,12 +19,8 @@ BossEntity::BossEntity()
 
 	// @TODO: Fix to retrieve bounding cube for correct model (generated simple model)
 	retrieveBoundingCube(models::dragon);
-
-	std::cout << "Got here\n";
-	//std::cout << "num of vertices in simplified mesh" << level1->simplifiedMesh.size() << "\n"; 
 }
 
-// @TODO: Add selection for which head
 // @NOTE: Can be optimized
 glm::mat4 BossEntity::getHeadTransformMatrix(int i)
 {
@@ -39,7 +32,6 @@ glm::mat4 BossEntity::getHeadTransformMatrix(int i)
 
 	return translationMatrix * scalingMatrix * rotationMatrix * prerotationMatrix;
 }
-
 
 // @TODO(Dirty): This is ugly, wasted computations
 bool BossEntity::checkCollision(Entity* entity)
@@ -65,12 +57,10 @@ void BossEntity::onCollision(Entity* entity)
 	for (int i = 0; i < 4; ++i)
 	{
 		BoundingBox box = boundingCube.getProjectedBoundingBox(getHeadTransformMatrix(i));
-		if (box.checkIntersection(entity->getProjectedBoundingBox()))
+		if (box.checkIntersection(entity->getProjectedBoundingBox()) && lives[i] > 0)
 		{
 			lives[i] -= 1;
-			// @TODO: Fix
-
-		switch (lives[i])
+			switch (lives[i])
 			{
 				case 3:
 					models[i] = models::ModelType::BossDetailLevel1;
@@ -84,10 +74,17 @@ void BossEntity::onCollision(Entity* entity)
 				break;
 				case 0:
 				default:
-				// Delete head
 				break;
 			}
+
+			totalLives -= 1;
+			if (totalLives == 0)
+			{
+				isAlive = false;
+				isCollidable = 0;
+			}
 		}
+
 	}
 }
 
@@ -113,6 +110,8 @@ void BossEntity::update(double tick, Gamestate* state )
 	{
 		// Then start attacking / moving
 	}
+
+	// @TODO: Implement death animation and potential win screen
 }
 
 void BossEntity::draw(long tick , glm::mat4 projView)
@@ -137,3 +136,7 @@ void BossEntity::draw(long tick , glm::mat4 projView)
 		}
 	}
 }
+
+// @TODO: implement drawBoundingCube();
+// @TODO: fix collision such that on collision with player, the boss becomes invisible for a second or two
+// @TODO: Make movement more unpredictable

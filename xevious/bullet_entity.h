@@ -9,12 +9,13 @@ class BulletEntity : public Entity
 public:
 	BulletEntity(glm::vec3 pos, glm::vec3 dir);
 	~BulletEntity();
-	
+	// ============= Gameplay related ============
 	void update(double tick, Gamestate* state);
 	void onCollision(Entity* entity);
-
-	glm::vec3 direction;
 	EntityType type = EntityType::Bullet;
+private:
+	glm::vec3 direction;
+	
 };
 
 #endif
