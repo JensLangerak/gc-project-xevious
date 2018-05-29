@@ -23,6 +23,7 @@
 #include <float.h>
 #include "bounding_box.h"
 #include "loadppm.h"
+#include "mesh_simplification.h"
 
 namespace models {    
     Model dragon;
@@ -32,6 +33,10 @@ namespace models {
     Model terrain;
     Model simple;
     Model david;
+
+    Model bossDetailLevel1;
+    Model bossDetailLevel2;
+    Model bossDetailLevel3;
 
     std::vector<GLuint> textures;
 
@@ -149,16 +154,33 @@ namespace models {
         return createModelBuffers(model);
     }
 
-    bool loadSimple(std::vector<Vertex> vertices)
+    bool loadSimplifiedMesh(std::vector<Vertex> vertices, ModelType into)
     {
-        simple.vertices.clear();
-        for (auto v=vertices.begin(); v!=vertices.end();++v)
+        Model* model;
+        switch (into)
         {
-            simple.vertices.push_back(*v);
+            case ModelType::BossDetailLevel1:
+                model = &bossDetailLevel1;
+                break;
+            case ModelType::BossDetailLevel2:
+                model = &bossDetailLevel2;
+                break;
+            case ModelType::BossDetailLevel3:
+                model = &bossDetailLevel3;
+                break;
+            default:
+            // load into simple
+				break;	
         }
 
+        model->vertices.clear();
+        for (auto v=vertices.begin(); v!=vertices.end();++v)
+        {
+            model->vertices.push_back(*v);
+        }
 
-        return createModelBuffers(simple);
+        // @NOTE: From pointer to reference is kind of ugly.
+        return createModelBuffers(*model);
     }
     
     bool loadModels() 
@@ -168,6 +190,16 @@ namespace models {
         bool result3 = loadModel(starEnemy, "resources/starship.obj");
         bool result4 = loadModel(playerGun, "resources/cannon.obj");
         bool result5 = loadModel(david, "resources/dragon.obj");
+
+
+        // Load levels of detail into bosses
+        MeshSimplification mesh = MeshSimplification(dragon.vertices, 20);
+        models::loadSimplifiedMesh(mesh.simplifiedMesh, ModelType::BossDetailLevel1);
+        mesh = MeshSimplification(dragon.vertices, 10);
+        models::loadSimplifiedMesh(mesh.simplifiedMesh, ModelType::BossDetailLevel2);
+        mesh = MeshSimplification(dragon.vertices, 5);
+        models::loadSimplifiedMesh(mesh.simplifiedMesh, ModelType::BossDetailLevel3);
+
 
         return result && result2 && result3 && result4;
     }
@@ -238,6 +270,16 @@ namespace models {
             case ModelType::PlayerGun:
                 model = &playerGun;
                 break;
+            case ModelType::BossDetailLevel1:
+                model = &bossDetailLevel1;
+                break;
+            case ModelType::BossDetailLevel2:
+                model = &bossDetailLevel2;
+                break;
+            case ModelType::BossDetailLevel3:
+                model = &bossDetailLevel3;
+                break;
+
             case ModelType::StarEnemy:
             default:
                 model = &starEnemy;
