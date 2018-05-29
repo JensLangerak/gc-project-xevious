@@ -122,7 +122,7 @@ glm::mat4 PlayerEntity::getWeaponTransform()
 	return translation * getScalingMatrix(weaponScale) * rotation;
 }
 
-void PlayerEntity::update(double tick __attribute__((unused)), Gamestate* state)
+void PlayerEntity::update(double tick , Gamestate* state)
 {
 	if (lives == 0)
 	{
@@ -130,14 +130,14 @@ void PlayerEntity::update(double tick __attribute__((unused)), Gamestate* state)
 	}
 }
 
-void PlayerEntity::onCollision(Entity* entity __attribute__((unused)))
+void PlayerEntity::onCollision(Entity* entity )
 {
 	// Decrease life by 1
 	lives -= 1;
 	std::cout << "Player has " << lives << " left\n"; 
 }
 
-void PlayerEntity::draw(long tick __attribute__((unused)), glm::mat4 projView)
+void PlayerEntity::draw(long tick , glm::mat4 projView)
 {
 	// 1. Draw the ship
 	// Create Transformation matrices
