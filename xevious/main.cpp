@@ -325,7 +325,7 @@ GLuint createTexture(){
     GLuint texShadow;
 
     glGenTextures(1, &texShadow);
-    glActiveTexture(GL_TEXTURE_2D + texShadow);
+    glActiveTexture( GL_TEXTURE0 + texShadow);
     glBindTexture(GL_TEXTURE_2D, texShadow);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
