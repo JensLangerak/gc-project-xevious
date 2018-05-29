@@ -38,47 +38,39 @@ public:
     Entity();
     Entity(glm::vec3 col);
     virtual ~Entity();
-
+    // ============= Rendering related ============
     virtual void draw(long tick, glm::mat4 projView);
     virtual void drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor);    
 
-    virtual void update(double tick, Gamestate* state);
-    virtual void onCollision(Entity* entity);
-    virtual bool checkCollision(Entity* entity);
-	        
-    virtual BoundingBox getProjectedBoundingBox();      // @NOTE: Might eventually be replaced by checkCollision() method 
+    glm::vec3 orientation;
+    glm::vec3 position;
 
-    // ============= Rendering related ============
     float scale = 1.;
     glm::vec3 color = glm::vec3(1,1,1); //tijdelijk (Denk ik)
     models::ModelType model;
     models::Textures texture = models::Textures::None;
 
-    glm::vec3 orientation;
-    glm::vec3 position;
-    
-    // ============= Gameplay related ============
+    // ============= Gameplay related ===============
+    virtual void update(double tick, Gamestate* state);
+    virtual void onCollision(Entity* entity);
+    virtual bool checkCollision(Entity* entity);
+    virtual BoundingBox getProjectedBoundingBox();      // @NOTE: Might eventually be replaced by checkCollision() method 
+
     EntityType type = EntityType::None;
     bool canBeRemoved = false;
     bool isCollidable = true;
     bool isAlive = true;
+
+    // ============= Debug related ==================
+    bool debugIsColliding = false;
+protected:    
+    // Collision
     BoundingCube boundingCube;
     BoundingBox boundingBox;
-
-    bool debugIsColliding = false;
-protected:
-    // Mesh
-    
-    // Location etc information
-
-    // Collision
     glm::vec2 get2DPosition();
-    BoundingBox getLocatedBoundingBox();
 
     // @NOTE: This is probably a bad idea
 	void retrieveBoundingCube(models::Model model);
-    
-    // @TODO: Add Collision check that only checks bounding boxes if collidable
 private:
     glm::mat4 getTransformationMatrix();
 };

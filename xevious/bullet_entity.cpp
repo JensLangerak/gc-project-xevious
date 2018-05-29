@@ -6,8 +6,6 @@ BulletEntity::~BulletEntity()
 {
 }
 
-
-// @TODO(Bug): Something weird happening with collisions not being perfect here
 BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 {
 	position = pos;
@@ -23,11 +21,10 @@ BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 
 void BulletEntity::update(double tick, Gamestate* state )
 {
-	// @NOTE: Move velocity into global, or into constructor
-	float velocity = 1.5 * tick;
-	position += direction * velocity;
-
-	// @TODO: Mark for deletion once out of screen
+	// @NOTE: Perhaps move velocity into global, or into constructor (if multiple enemies of different speeds)
+	float velocity = 1.5;
+	float distance = velocity * tick;
+	position += direction * distance;
 }
 
 void BulletEntity::onCollision(Entity* entity )

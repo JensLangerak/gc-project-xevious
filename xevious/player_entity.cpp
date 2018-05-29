@@ -12,21 +12,15 @@
 PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 {
 	// -------------- Rendering & Testing section ------
-
-	// @NOTE: Super constructor is automatically called
 	retrieveBoundingCube(models::playerShip);
 	shipModel = models::ModelType::PlayerShip;
 	weaponModel = models::ModelType::PlayerGun;
-	shipScale = 0.05;
-	weaponScale = 0.05;
+	shipScale = 0.1;
+	weaponScale = 0.1;
 	weaponAngle = 0;
-	// @TODO: Tweak until looks right;
 	// @NOTE: Also needs to be transformed into world space
 	relativeLocWeapon = glm::vec3(0., 1.0, 0.);
 	type = EntityType::Player;
-
-
-
 
 	// -------------- Gameplay section ------------------
 	lives = 20;
@@ -34,7 +28,6 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 
 void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 {
-	// @TODO: Do bounds checking for player location to prevent moving outside of screen
 	// @TODO: Change movement_amount to be dependent on tick (move actual action to update function)
 	float movement_amount = 0.05;
 	switch (action)

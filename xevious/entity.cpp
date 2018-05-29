@@ -82,23 +82,8 @@ BoundingBox Entity::getProjectedBoundingBox()
     return boundingCube.getProjectedBoundingBox(getTransformationMatrix());
 }
 
-// bool Entity::checkCollision(Entity other)
-// {
-//     // @TODO: Implement
-
-// }
-
-
+// @NOTE: This might still be useful for computing the cannon angle
 glm::vec2 Entity::get2DPosition()
 {
-    // @NOTE: We use x and z coordinated for x and y 2D coordinates
-    return glm::vec2(position.x, position.z);
-}
-
-BoundingBox Entity::getLocatedBoundingBox()
-{
-    // @TODO: Rotate BoundingCube (assumed to be zero-centered)
-    // @TODO: Extract max BoundingBox from BoundingCube;
-
-    return BoundingBox(boundingBox, get2DPosition());
+    return glm::vec2(position.x, -position.z);
 }

@@ -207,14 +207,6 @@ void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int
 	{
 		// Toggle debug mode
 		globals::debugMode = !globals::debugMode;
-	}
-	// @TEST: Rotating cannon, remove once done testing
-	else if (key == GLFW_KEY_T)
-	{
-		player->weaponAngle -= 0.1;
-	} else if (key == GLFW_KEY_Y)
-	{
-		player->weaponAngle += 0.1;
 	} else if (key == GLFW_KEY_0)
 	{
 		// @TODO: Implement
@@ -491,7 +483,6 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 	vector<BulletEntity*>* bulletList = gamestate.bulletList; 
 
 	// ====================== update entities & remove dead/outofbounds ========================
-	// @NOTE: Can be moved into update section if debugging isn't necessary anymore
 	for (vector<Entity*>::iterator it = entityList->begin(); it != entityList->end();)
 	{
 		Entity* e = *it;
@@ -526,7 +517,7 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 		Entity* player = gamestate.player;
 
 			// @TODO: Do bullets have the correct bounding cubes?
-		if (a->isCollidable && a != player && player->checkCollision(a))
+		if (a->isCollidable && a != player && a->checkCollision(player)) // @IMPORTANT: order is important because of overloading functions
 		{
 			a->debugIsColliding = true;
 			player->debugIsColliding = true;

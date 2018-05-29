@@ -20,36 +20,35 @@ class PlayerEntity : public Entity
 {
 public:
 	PlayerEntity();
+    // ============= Rendering related ============
 	void draw(long tick, glm::mat4 projView);
 	void drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor);
 
+    // ============= Gameplay related ============
 	void update(double tick, Gamestate* state);
 	void onCollision(Entity* entity);
-	
 	void performAction(PlayerAction action, Gamestate* state);
 	BoundingBox getProjectedBoundingBox();
 
 	// @NOTE: Temporarily for testing only
-	float weaponAngle;
-
 	glm::vec4 getScreenPosition(glm::mat4 projView);
+
+	float weaponAngle;
 protected:
 	// ============= Rendering related ============
-	models::ModelType shipModel;
-	models::ModelType weaponModel;
-
-	float shipScale;
-	float weaponScale;
-
-	glm::vec3 relativeLocWeapon;
-
 	glm::mat4 getShipTransform();
 	glm::mat4 getWeaponTransform();
 
+	models::ModelType shipModel;
+	models::ModelType weaponModel;
+	glm::vec3 relativeLocWeapon;
+	float shipScale;
+	float weaponScale;
+
 	// ============= Gameplay related =============
+	void movePlayer(float x, float y);
 	int lives; // Number of lives that the player has before dying
 
-	void movePlayer(float x, float y);
 };
 
 #endif
