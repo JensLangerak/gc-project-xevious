@@ -46,7 +46,7 @@ namespace models {
         float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX;
         float maxX = -FLT_MAX, maxY = -FLT_MAX, maxZ = -FLT_MAX;
 
-        for (int i = 0; i < vertices.size(); ++i)
+        for (unsigned int i = 0; i < vertices.size(); ++i)
         {
             glm::vec3 vertex = vertices[i].pos;
             minX = fmin(minX, vertex.x);
@@ -107,7 +107,7 @@ namespace models {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-        // @TODO: Generate bounding cube
+        // @TODO: Generate bounding cube, not here also used by terrain etc...
 
         return true;
     }
@@ -365,40 +365,7 @@ namespace models {
                 terrain.vertices.push_back(vertices[i][j]);
             }
         }
-        
-        
-        
-              // Create Vertex Buffer Object
-        glGenBuffers(1, &(terrain.vbo));
-        glBindBuffer(GL_ARRAY_BUFFER, terrain.vbo);
-        glBufferData(GL_ARRAY_BUFFER, terrain.vertices.size() * sizeof(Vertex), terrain.vertices.data(), GL_STATIC_DRAW);
 
-        // Bind vertex data to shader inputs using their index (location)
-        // These bindings are stored in the Vertex Array Object
-        glGenVertexArrays(1, &(terrain.vao));
-        glBindVertexArray(terrain.vao);
-
-        // The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-        // Stride is the distance in bytes between vertices
-        glBindBuffer(GL_ARRAY_BUFFER, terrain.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "pos"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-        glEnableVertexAttribArray(0);
-
-        // The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-        // The offset is different and the data should go to input 1 instead of 0
-        glBindBuffer(GL_ARRAY_BUFFER, terrain.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "normal"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-        glEnableVertexAttribArray(1);
-    
-        glBindBuffer(GL_ARRAY_BUFFER, terrain.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "texCoord"), 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoord)));
-        glEnableVertexAttribArray(2);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, terrain.vbo);
-        glVertexAttribPointer(glGetAttribLocation(globals::mainProgram, "vertColor"), 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
-        glEnableVertexAttribArray(3);
-        
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        createModelBuffers(terrain);
     }
 }

@@ -21,7 +21,7 @@ BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 	type = EntityType::Bullet;
 }
 
-void BulletEntity::update(double tick, Gamestate* state)
+void BulletEntity::update(double tick, Gamestate* state __attribute__((unused)))
 {
 	// @NOTE: Move velocity into global, or into constructor
 	float velocity = 0.001 * tick;
@@ -30,7 +30,7 @@ void BulletEntity::update(double tick, Gamestate* state)
 	// @TODO: Mark for deletion once out of screen
 }
 
-void BulletEntity::onCollision(Entity* entity)
+void BulletEntity::onCollision(Entity* entity __attribute__((unused)))
 {
 	isAlive = false;
 	isCollidable = false;
