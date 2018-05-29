@@ -42,7 +42,7 @@ MeshSimplification:: MeshSimplification (const std::vector<Vertex> vertices, uns
 
 void MeshSimplification::recalculateNormals()
 {
-    for (int i = 0; i < simplifiedMesh.size(); i += 3)
+    for (unsigned int i = 0; i < simplifiedMesh.size(); i += 3)
     {
         Vertex a = simplifiedMesh[i];
         Vertex b = simplifiedMesh[i + 1];
@@ -58,7 +58,7 @@ void MeshSimplification::recalculateNormals()
         simplifiedMesh[i+2].normal += n;
     }
 
-    for (int i = 0; i < simplifiedMesh.size(); i ++)
+    for (unsigned int i = 0; i < simplifiedMesh.size(); i ++)
     {
         simplifiedMesh[i].normal =   glm::normalize(simplifiedMesh[i].normal);
 
@@ -67,7 +67,7 @@ void MeshSimplification::recalculateNormals()
 
 void MeshSimplification::constructTriangles(const std::vector<Vertex> vertices)
 {
-    for (int i = 0; i < vertices.size(); i += 3)
+    for (unsigned int i = 0; i < vertices.size(); i += 3)
     {
         int a = isContainedAt(vertices[i].pos);
         int b = isContainedAt(vertices[i + 1].pos);
@@ -131,11 +131,11 @@ void MeshSimplification::createGrid(const std::vector<Vertex> vertices) {
     size = fmax(max[0] - min[0],  fmax(max[1] - min[1], max[2] - min[2])) + 2* epsilon;
 
     float edge = size / r;
-    for (int x = 0; x < r; x++)
+    for (unsigned int x = 0; x < r; x++)
     {
-        for (int y = 0; y < r; y++)
+        for (unsigned int y = 0; y < r; y++)
         {
-            for (int z = 0; z < r; z++)
+            for (unsigned int z = 0; z < r; z++)
             {
                 addCell(glm::vec3(edge * x, edge * y , edge * z) + origin, glm::vec3(edge * (x + 1), edge * (y + 1 ), edge * (z + 1)) + origin);
             }
