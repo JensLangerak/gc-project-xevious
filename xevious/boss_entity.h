@@ -29,6 +29,10 @@ private:
 	int totalLives = 16;			// 4 lives * 4 heads
 	glm::vec3 colors[4];	// @TODO: Unused right now
 	EntityType type = EntityType::Enemy;
+
+
+	float bulletCountdown = 2.0;
+	bool bulletStormActive = true;
 };
 
 #endif

@@ -3,8 +3,11 @@
 #include "models.h"
 #include "mesh_simplification.h"
 #include "utils.h"
+#include "bullet_entity.h"
+#include "player_entity.h"
 
 #include <iostream>
+#include <utility>
 
 BossEntity::BossEntity()
 {
@@ -88,6 +91,28 @@ void BossEntity::onCollision(Entity* entity)
 	}
 }
 
+// bubbleSort by z value
+struct LocIndexPair
+{
+	glm::vec4 location;
+	int index;
+};
+
+void sort(LocIndexPair (&list)[4], int count)
+{
+	for (int i = 0; i < count; ++i)
+	{
+		for (int j = i; j < count; ++j)
+		{
+			if (list[j].location.z > list[i].location.z)
+			{
+				std::swap(list[i], list[j]);
+			}
+		}
+	}
+}
+
+
 void BossEntity::update(double tick, Gamestate* state )
 {
 	float angularVelocity = 3.14/2;
@@ -110,6 +135,48 @@ void BossEntity::update(double tick, Gamestate* state )
 	{
 		// Then start attacking / moving
 	}
+
+
+	// @TODO: Implement bullets
+	if (isAlive && bulletStormActive && bulletCountdown <= 0)
+	{
+		// transform * centerOffset  = location
+		LocIndexPair positions[4];
+		for (int i = 0; i < 4; ++i)
+		{
+			positions[i].location = getRotationMatrix(0, orientation.y, 0) * glm::vec4(centerOffsets[i], 1.0);
+			positions[i].index = i;
+		}
+		sort(positions, 4);
+		
+		for (int i = 0; i < 4; ++i)
+		{
+			// @TODO: fix
+			if (lives[positions[i].index] > 0)
+			{
+				// Shoot from here
+				glm::vec4 bulletLocation = getHeadTransformMatrix(i) * glm::vec4(position, 1.0);
+				// in the direction of the player (for now)
+				glm::vec3 bulletLoc3 = glm::vec3(bulletLocation.x, bulletLocation.y, bulletLocation.z);
+				glm::vec3 bulletDir = state->player->position - bulletLoc3;
+				BulletEntity* bullet = new BulletEntity(bulletLoc3, bulletDir);
+				state->entityList->push_back(bullet);
+				// @TODO: Mark bullet as intended for player!!!
+				break;
+			}
+		}
+
+		bulletCountdown = 0.2;
+	} else {
+		bulletCountdown -= tick;
+	}
+
+	// each x seconds, send a bullet from the foremost (living) head towards the player
+	
+	// sort locations by z value (higher is more in front)
+	// for each
+	// if alive -> shoot bullet towards player
+
 
 	// @TODO: Implement death animation and potential win screen
 }

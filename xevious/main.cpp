@@ -490,12 +490,9 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 	vector<Entity*>* entityList = gamestate.entityList;
 	vector<BulletEntity*>* bulletList = gamestate.bulletList; 
 
-	// ====================== update entities & remove dead/outofbounds ========================
 	for (vector<Entity*>::iterator it = entityList->begin(); it != entityList->end();)
 	{
 		Entity* e = *it;
-		e->debugIsColliding = false;
-		e->update(timeDelta, &gamestate);
 		if (e->canBeRemoved || !e->getProjectedBoundingBox().checkIntersection(gamestate.gamebox)) 
 		{
 			it = entityList->erase(it);
@@ -504,10 +501,10 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 			++it;
 		}     
 	}           
+
 	for (vector<BulletEntity*>::iterator it = bulletList->begin(); it != bulletList->end();)
 	{
-		BulletEntity* bullet = *it; 
-		bullet->update(timeDelta, &gamestate);
+		BulletEntity* bullet = *it;
 		if (bullet->canBeRemoved || !bullet->getProjectedBoundingBox().checkIntersection(gamestate.gamebox))
 		{
 			it = bulletList->erase(it);
@@ -517,6 +514,23 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 			++it;
 		}
 	}
+
+	// ====================== update entities & remove dead/outofbounds ========================
+	int entityListSize = entityList->size();
+	for (int i = 0; i < entityListSize; i++)
+	{
+		Entity* e = (*entityList)[i];
+		e->debugIsColliding = false;
+		e->update(timeDelta, &gamestate);		
+	}
+
+	int bulletListSize = bulletList->size();
+	for (int i = 0; i < bulletListSize; ++i)
+	{
+		BulletEntity* bullet = (*bulletList)[i];
+		bullet->update(timeDelta, &gamestate);
+	}   
+
 	// ====================== collision detection ========================
 	// Not perfect, but good enough for now
 	for (vector<Entity*>::iterator it = entityList->begin(); it != entityList->end(); ++it)
