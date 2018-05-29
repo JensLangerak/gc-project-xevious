@@ -16,7 +16,10 @@ namespace models {
     enum class ModelType{
         Dragon,
         David,
-        Terrain,
+        Terrain1,
+        Terrain2,
+        Terrain3,
+        Terrain4,
         Simple,
 
         PlayerShip,
@@ -57,9 +60,11 @@ namespace models {
 
     bool loadTextures();
     void drawModel(ModelType model);
-    void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ);
 
     void generateSimpleModel(const std::vector<Vertex> vertices, unsigned int r);
+
+    Model *getModel(ModelType model);
+    bool createModelBuffers(Model &model);
 }
 
 #endif

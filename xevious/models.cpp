@@ -30,7 +30,11 @@ namespace models {
     Model playerShip;
     Model playerGun;
     Model starEnemy;
-    Model terrain;
+    Model terrain1;
+    Model terrain2;
+    Model terrain3;
+    Model terrain4;
+
     Model simple;
     Model david;
 
@@ -249,14 +253,22 @@ namespace models {
         
         return true;
     }
-    
-    void drawModel(ModelType modelType)
-    {
 
+    Model* getModel(ModelType modelType)
+    {
         Model *model;
         switch(modelType) {
-            case ModelType::Terrain:
-                model = &terrain;
+            case ModelType::Terrain1:
+                model = &terrain1;
+                break;
+            case ModelType::Terrain2:
+                model = &terrain2;
+                break;
+            case ModelType::Terrain3:
+                model = &terrain3;
+                break;
+            case ModelType::Terrain4:
+                model = &terrain4;
                 break;
             case ModelType::Simple:
                 model = &simple;
@@ -284,6 +296,12 @@ namespace models {
             default:
                 model = &starEnemy;
         }
+        return model;
+    }
+    void drawModel(ModelType modelType)
+    {
+        Model *model = getModel(modelType);
+
     
         // Bind vertex data
         glBindVertexArray(model->vao);
@@ -292,80 +310,5 @@ namespace models {
         // Execute draw command
         glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
     }
-    
-    void generateTerrain(double sizeX, double sizeZ, int nbVertX, int nbVertZ){
-        // @NOTE: DIRTY TEMPORARY BAD HACK PLEASE FIX 
-        const int TERRAIN_WIDTH = 100;
-        const int TERRAIN_HEIGHT = 100;
-        Vertex vertices[TERRAIN_WIDTH][TERRAIN_HEIGHT];
-        for (int i = 0; i < nbVertX; i++) {
-            for (int j = 0; j < nbVertZ; j++) {
-				Vertex vertex = {};
-                 double x = sizeX / nbVertX * (i - 0.5 * nbVertX);
-                 double z = sizeZ / nbVertZ * (j - 0.5 * nbVertZ);
-                 double y = 0.9 * sin(3 * x + 3 * z + 23.42)
-                  + 0.7 * sin(sin(x * 0.3 + 0.3) * x  * 3+  3 * z + 2.32)
-                    + 0.8 * sin(3 * x + 0 * cos(x * 0.9) + 1.12)
-                    + 0.6 * sin(cos(z * 0.6) * x + 3 * z + 6.32);
 
-               //  y = 0;
-                 vertex.pos = glm::vec3(x, y, z);
-                 
-                 vertex.normal = glm::vec3(0, 0, 0);
-               
-               //define colors
-                float c = y  ;
-                c = c > 1 ? 1 : c < 0 ? 0 : c;
-                vertex.color = glm::vec3(c, 1, c);
-                
-                 vertex.texCoord = glm::vec2(x * 0.6,z * 0.6);
-                 
-                 vertices[i][j] = vertex;
-            }
-        }
-        
-        for (int i = 1; i < nbVertX; i++) {
-            for (int j = 1; j < nbVertZ; j++) {
-                glm::vec3 u = vertices[i - 1][j - 1].pos - vertices[i][j].pos;
-                glm::vec3 v = vertices[i - 1][j].pos - vertices[i][j].pos;
-
-                glm::vec3 n =  glm::normalize(glm::cross(u, v));
-
-                vertices[i - 1][j - 1].normal += n;
-                vertices[i - 1][j].normal += n;
-                vertices[i][j].normal += n;
-                
-                
-                v = vertices[i - 1][j - 1].pos - vertices[i][j].pos;
-                u = vertices[i][j - 1].pos - vertices[i][j].pos;
-
-                n =  glm::normalize(glm::cross(u, v));
-
-                vertices[i - 1][j - 1].normal += n;
-                vertices[i][j - 1].normal += n;
-                vertices[i][j].normal += n;
-              
-            }
-        }
-        
-        for (int i = 0; i < nbVertX; i++) {
-            for (int j = 0; j < nbVertZ; j++) {
-                vertices[i][j].normal = glm::normalize(vertices[i][j].normal);
-        
-            }
-        }
-        for (int i = 1; i < nbVertX; i++) {
-            for (int j = 1; j < nbVertZ; j++) {
-                terrain.vertices.push_back(vertices[i -1][j - 1]);
-                terrain.vertices.push_back(vertices[i -1][j]);
-                terrain.vertices.push_back(vertices[i][j]);
-                
-                terrain.vertices.push_back(vertices[i -1][j - 1]);
-                terrain.vertices.push_back(vertices[i][j - 1]);
-                terrain.vertices.push_back(vertices[i][j]);
-            }
-        }
-
-        createModelBuffers(terrain);
-    }
 }

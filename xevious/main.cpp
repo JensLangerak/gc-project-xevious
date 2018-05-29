@@ -32,6 +32,7 @@
 #include "enemy_entity.h"
 #include "bullet_entity.h"
 #include "boss_entity.h"
+#include "terrain_generator.h"
 // using std::list;
 using std::vector;
 
@@ -388,7 +389,7 @@ void calculateShadowMap(GLuint &framebuffer, Camera & light)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vector<BulletEntity*> & bulletList, Entity &terrain)
+void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vector<BulletEntity*> & bulletList, TerrainGenerator &terrain)
 {
     // ====================== game render section ========================
     // Bind the shader
@@ -426,7 +427,11 @@ void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vecto
 		(*it)->draw(0, vp);
 	}
 
-	terrain.draw(0, vp);
+    terrain.terrain1.draw(0, vp);
+    terrain.terrain2.draw(0, vp);
+    terrain.terrain3.draw(0, vp);
+    terrain.terrain4.draw(0, vp); //TODO
+
 
 	for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
 	{
@@ -666,12 +671,14 @@ int main(int argc , char** argv )
 
 
 	// @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
-	models::generateTerrain(2.5, 2.5, 100, 100);
+
 	
-	Entity terrain;
-	terrain.model = models::ModelType::Terrain;
-	terrain.texture = models::Textures::Sand;
-	terrain.position =  glm::vec3(0.,-3.5,0.);
+//	Entity terrain;
+//	terrain.model = models::ModelType::Terrain;
+//	terrain.texture = models::Textures::Sand;
+//	terrain.position =  glm::vec3(0.,-3.5,0.);
+
+    TerrainGenerator terrainGenerator(2.5,2.5/2.);
 
 	clock_t timeStartFrame = clock();
 	clock_t timeEndFrame = clock();
@@ -681,16 +688,28 @@ int main(int argc , char** argv )
 		glfwPollEvents();
 		timeStartFrame = timeEndFrame;
 		timeEndFrame = clock();
+
 		double timeDelta = ((double)timeEndFrame - timeStartFrame) / CLOCKS_PER_SEC; 
 		// std::cout << "FPS: " << 1./timeDelta << std::endl; 
 
 		// @NOTE: For convenience sake
 		update(window, gamestate, timeDelta);
 
-		calculateShadowMap(framebuffer, mainLight);
-		render(texShadow, camera, *(gamestate.entityList), *(gamestate.bulletList), terrain);
 
-		glfwSwapBuffers(window);
+        terrainGenerator.UpdateChunks(timeDelta);
+
+
+        calculateShadowMap(framebuffer, mainLight);
+
+        //	glfwSwapBuffers(window);
+
+//continue;
+        render(texShadow, camera, *(gamestate.entityList), *(gamestate.bulletList),terrainGenerator);
+
+        //simple.drawGrid(vp * other.getTransformationMatrix());
+        glfwSwapBuffers(window);
+
+
         //sleep();
 	}
 
