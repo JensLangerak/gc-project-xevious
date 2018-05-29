@@ -18,6 +18,8 @@ namespace models {
         David,
         Terrain1,
         Terrain2,
+        Terrain3,
+        Terrain4,
         Simple,
 
         PlayerShip,

@@ -17,10 +17,16 @@ public:
     void UpdateChunks(double delta);
     Entity terrain1;
     Entity terrain2;
+    Entity terrain3;
+    Entity terrain4;
+
+    Entity * lastUpdated;
 protected:
     int nextChunk;
     double chunkHeight;
     double chunkWidth;
+
+
 
 };
 #endif //TERRAIN_GENERATOR_H

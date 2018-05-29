@@ -14,8 +14,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "bounding_box.h"
 
-// Forward declaring PlayerEntity and Entity
+// Forward declaring necessary classes
 class PlayerEntity;
 class Entity;
 class BulletEntity;
@@ -32,9 +33,11 @@ struct Gamestate
 	PlayerEntity* player;
 	std::vector<Entity*>* entityList;
 	std::vector<BulletEntity*>* bulletList;
+	BoundingBox gamebox = BoundingBox(-1.5, -5.5, 3., 10.);;
 	double aiTimer;
 	double stageTimer = 10.;
 	int stage = 0;
+	bool stageReady = false;
 	GameMode mode = GameMode::Playing; // @TODO: switch to Menu once implemented
 };
 

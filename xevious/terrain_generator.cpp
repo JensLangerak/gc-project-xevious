@@ -8,16 +8,22 @@ TerrainGenerator::TerrainGenerator(double width, double height) :
 {
     terrain1.model = models::ModelType::Terrain1;
     terrain1.texture = models::Textures::Sand;
-    terrain1.position =  glm::vec3(0.,-3.5,0.);
+    terrain1.position =  glm::vec3(0.,-3.5,height);
     terrain2.model = models::ModelType::Terrain2;
     terrain2.texture = models::Textures::Sand;
-    terrain2.position =  glm::vec3(0.,-3.5,-height);
+    terrain2.position =  glm::vec3(0.,-3.5,0.0);
+    terrain3.model = models::ModelType::Terrain3;
+    terrain3.texture = models::Textures::Sand;
+    terrain3.position =  glm::vec3(0.,-3.5,-1*height);
+    terrain4.model = models::ModelType::Terrain4;
+    terrain4.texture = models::Textures::Sand;
+    terrain4.position =  glm::vec3(0.,-3.5,-2*height);
 
     InitTerrainBuffers();
 }
 
-const int TERRAIN_WIDTH = 50;
-const int TERRAIN_HEIGHT = 50;
+const int TERRAIN_WIDTH = 40;
+const int TERRAIN_HEIGHT = 20;
 const int TERRAIN_ARRAY_WIDTH = TERRAIN_WIDTH + 2; //need extra for normals;
 const int TERRAIN_ARRAY_HEIGHT = TERRAIN_HEIGHT + 2;
 
@@ -109,30 +115,57 @@ void TerrainGenerator::UpdateChunk(Entity &chunk, bool update)
 }
 void TerrainGenerator::InitTerrainBuffers(){
 
+    //TODO
     UpdateChunk(terrain1, false);
     UpdateChunk(terrain2, false);
+
+    UpdateChunk(terrain3, false);
+    UpdateChunk(terrain4, false);
     models::createModelBuffers(*models::getModel(terrain1.model));
     models::createModelBuffers(*models::getModel(terrain2.model));
+    models::createModelBuffers(*models::getModel(terrain3.model));
+    models::createModelBuffers(*models::getModel(terrain4.model));
 
 
-    terrain1.position =  glm::vec3(0.,-3.5,0.);
-    terrain2.position =  glm::vec3(0.,-3.5,-1 * chunkHeight);
+    terrain1.position =  glm::vec3(0.,-3.5, 1 * chunkHeight);
+    terrain2.position =  glm::vec3(0.,-3.5, 0 * chunkHeight);
+    terrain3.position =  glm::vec3(0.,-3.5,-1 * chunkHeight);
+    terrain4.position =  glm::vec3(0.,-3.5,-2 * chunkHeight);
+    lastUpdated = &terrain4;
 
 }
 void TerrainGenerator::UpdateChunks(double delta)
 {
     terrain1.position.z += delta * 2.5;
     terrain2.position.z += delta * 2.5;
+    terrain3.position.z += delta * 2.5;
+    terrain4.position.z += delta * 2.5;
 
-    if (terrain1.position.z > chunkHeight){
+    if (terrain1.position.z > 2 * chunkHeight){
         UpdateChunk(terrain1, true);
-        terrain1.position.z = terrain2.position.z - chunkHeight;
+        terrain1.position.z = lastUpdated->position.z - chunkHeight;
         std::cout << "update1 " <<std::endl;
+        lastUpdated = &terrain1;
     }
 
-    if (terrain2.position.z > chunkHeight){
+    if (terrain2.position.z > 2 * chunkHeight){
         UpdateChunk(terrain2, true);
-        terrain2.position.z = terrain1.position.z - chunkHeight;
+        terrain2.position.z = lastUpdated->position.z - chunkHeight;
         std::cout << "update 2" <<std::endl;
+        lastUpdated = &terrain2;
+    }
+
+    if (terrain3.position.z > 2 * chunkHeight){
+        UpdateChunk(terrain3, true);
+        terrain3.position.z = lastUpdated->position.z - chunkHeight;
+        std::cout << "update 3" <<std::endl;
+        lastUpdated = &terrain3;
+    }
+
+    if (terrain4.position.z > 2 * chunkHeight){
+        UpdateChunk(terrain4, true);
+        terrain4.position.z = lastUpdated->position.z - chunkHeight;
+        std::cout << "update 4" <<std::endl;
+        lastUpdated = &terrain4;
     }
 }

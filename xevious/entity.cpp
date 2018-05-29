@@ -44,12 +44,12 @@ glm::mat4 Entity::getTransformationMatrix()
     return model * scaleMatrix;
 }
 
-void Entity::update(double tick __attribute__((unused)), Gamestate* state __attribute__((unused)))
+void Entity::update(double tick , Gamestate* state )
 {
     // @TODO: Figure out if anything needs to be done here
 }
 
-void Entity::onCollision(Entity* entity __attribute__((unused)))
+void Entity::onCollision(Entity* entity )
 {    
 }
 
@@ -58,7 +58,7 @@ bool Entity::checkCollision(Entity* entity)
     return getProjectedBoundingBox().checkIntersection(entity->getProjectedBoundingBox()); 
 }
 
-void Entity::draw(long tick __attribute__((unused)), glm::mat4 projView)
+void Entity::draw(long tick , glm::mat4 projView)
 {
     glm::mat4 mvp = projView * getTransformationMatrix();
     glm::mat4 modelMatrix = getTransformationMatrix();

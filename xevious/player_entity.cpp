@@ -60,8 +60,8 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 			{
 				glm::vec3 pos = state->player->position;
 				float angle = state->player->weaponAngle;
-				// @TODO: Fix the math here
-				glm::vec3 dir = glm::vec3(sin(angle), 0., -cos(angle));
+				
+				glm::vec3 dir = glm::normalize(glm::vec3(sin(angle), 0., -cos(angle)));
 				BulletEntity* bullet = new BulletEntity(pos, dir);
 
 				state->bulletList->push_back(bullet);
@@ -122,7 +122,7 @@ glm::mat4 PlayerEntity::getWeaponTransform()
 	return translation * getScalingMatrix(weaponScale) * rotation;
 }
 
-void PlayerEntity::update(double tick __attribute__((unused)), Gamestate* state)
+void PlayerEntity::update(double tick , Gamestate* state)
 {
 	if (lives == 0)
 	{
@@ -130,14 +130,14 @@ void PlayerEntity::update(double tick __attribute__((unused)), Gamestate* state)
 	}
 }
 
-void PlayerEntity::onCollision(Entity* entity __attribute__((unused)))
+void PlayerEntity::onCollision(Entity* entity )
 {
 	// Decrease life by 1
 	lives -= 1;
 	std::cout << "Player has " << lives << " left\n"; 
 }
 
-void PlayerEntity::draw(long tick __attribute__((unused)), glm::mat4 projView)
+void PlayerEntity::draw(long tick , glm::mat4 projView)
 {
 	// 1. Draw the ship
 	// Create Transformation matrices

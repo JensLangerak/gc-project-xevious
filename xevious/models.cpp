@@ -32,6 +32,8 @@ namespace models {
     Model starEnemy;
     Model terrain1;
     Model terrain2;
+    Model terrain3;
+    Model terrain4;
 
     Model simple;
     Model david;
@@ -261,6 +263,12 @@ namespace models {
                 break;
             case ModelType::Terrain2:
                 model = &terrain2;
+                break;
+            case ModelType::Terrain3:
+                model = &terrain3;
+                break;
+            case ModelType::Terrain4:
+                model = &terrain4;
                 break;
             case ModelType::Simple:
                 model = &simple;
