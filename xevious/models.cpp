@@ -35,6 +35,8 @@ namespace models {
     Model terrain3;
     Model terrain4;
 
+    Model bullet;
+    
     Model simple;
     Model david;
 
@@ -154,7 +156,6 @@ namespace models {
         }
 
 
-
         return createModelBuffers(model);
     }
 
@@ -187,6 +188,28 @@ namespace models {
         return createModelBuffers(*model);
     }
     
+
+    void loadBullet()
+    {
+        bullet.vertices.clear();
+        Vertex bottomLeft = {{-1, 0, 1}, {0, 1, 0}, {0, 0, 0}, {0, 1}};
+        Vertex bottomRight = {{1, 0, 1}, {0, 1, 0}, {0, 0, 0}, {1, 1}}; 
+        Vertex topRight = {{1, 0, -1}, {0, 1, 0}, {0, 0, 0}, {1, 0}};
+        Vertex topLeft = {{-1, 0, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0}}; 
+
+        bullet.vertices.push_back(bottomLeft);
+        bullet.vertices.push_back(bottomRight);
+        bullet.vertices.push_back(topRight);
+
+        bullet.vertices.push_back(topRight);
+        bullet.vertices.push_back(topLeft);
+        bullet.vertices.push_back(bottomLeft);
+
+
+
+        createModelBuffers(bullet);
+    }
+
     bool loadModels() 
     {
         bool result = loadModel(dragon, "resources/dragon.obj"); 
@@ -195,6 +218,7 @@ namespace models {
         bool result4 = loadModel(playerGun, "resources/cannon.obj");
         bool result5 = loadModel(david, "resources/dragon.obj");
 
+        loadBullet();
 
         // Load levels of detail into bosses
         MeshSimplification mesh = MeshSimplification(dragon.vertices, 20);
@@ -291,7 +315,9 @@ namespace models {
             case ModelType::BossDetailLevel3:
                 model = &bossDetailLevel3;
                 break;
-
+            case ModelType::Bullet:
+                model = &bullet;
+                break;
             case ModelType::StarEnemy:
             default:
                 model = &starEnemy;

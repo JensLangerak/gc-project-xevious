@@ -48,7 +48,8 @@ protected:
 	// ============= Gameplay related =============
 	void movePlayer(float x, float y);
 	int lives; // Number of lives that the player has before dying
-
+	float weaponCooldown;
+	bool weaponReady;
 };
 
 #endif

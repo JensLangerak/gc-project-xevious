@@ -215,6 +215,14 @@ void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int
 	}
 }
 
+void handleMouseButtons(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+    	player->performAction(PlayerAction::SHOOT, &gamestate);
+    }
+}
+
 
 // @TODO(Bug): fix
 void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
@@ -255,7 +263,7 @@ void veryObviousAI(Gamestate* state, double delta)
 			float randVal = (float) rand() / (float) RAND_MAX;
 			float randX = randVal * 2. - 1.;
 
-			EnemyEntity* enemy = new EnemyEntity(glm::vec2(randX, -1.));
+			EnemyEntity* enemy = new EnemyEntity(glm::vec2(randX, -1.5));
 			state->entityList->push_back(enemy);
 
 			// Reset timer
@@ -590,6 +598,7 @@ int main(int argc , char** argv )
 
 	// Attach keyboard and mouse handlers
 	glfwSetKeyCallback(window, handleKeyboard);
+	glfwSetMouseButtonCallback(window, handleMouseButtons);
 
 	// Activate the OpenGL context
 	glfwMakeContextCurrent(window);

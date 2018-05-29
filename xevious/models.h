@@ -22,6 +22,7 @@ namespace models {
         Terrain4,
         Simple,
 
+        Bullet,
         PlayerShip,
         PlayerGun,
         StarEnemy,
@@ -46,6 +47,7 @@ namespace models {
     extern Model playerShip;
     extern Model starEnemy;
     extern Model david;
+    extern Model bullet;
 
     extern Model bossDetailLevel1;
     extern Model bossDetailLevel2;

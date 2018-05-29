@@ -8,6 +8,8 @@
 
 #define PI 3.14
 
+#define WEAPON_COOLDOWN 0.3
+
 // @NOTE: Default constructor to set up gamestate conveniently. Probably a bad idea
 PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 {
@@ -24,6 +26,8 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 
 	// -------------- Gameplay section ------------------
 	lives = 20;
+	weaponCooldown = WEAPON_COOLDOWN;
+	weaponReady = true;
 }
 
 void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
@@ -50,6 +54,7 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 		break;
 		case PlayerAction::SHOOT:
 			// Spawn new entity and set direction
+			if (weaponReady)
 			{
 				glm::vec3 pos = state->player->position;
 				float angle = state->player->weaponAngle;
@@ -58,6 +63,7 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 				BulletEntity* bullet = new BulletEntity(pos, dir);
 
 				state->bulletList->push_back(bullet);
+				weaponReady = false;
 			}
 		break;
 		default:
@@ -81,7 +87,7 @@ float clamp(float val, float low, float high)
 void PlayerEntity::movePlayer(float x, float y)
 {
 	position.x = clamp(position.x + x, -1., 1.);
-	position.z = clamp(position.z + y, -1., .5);
+	position.z = clamp(position.z + y, -.9, 1.);
 }
 
 glm::mat4 PlayerEntity::getShipTransform()
@@ -120,6 +126,15 @@ void PlayerEntity::update(double tick , Gamestate* state)
 	if (lives == 0)
 	{
 		state->mode = GameMode::Dead;
+	}
+
+	if (!weaponReady && weaponCooldown >= 0)
+	{
+		weaponCooldown -= tick;
+	} else if (!weaponReady)
+	{
+		weaponCooldown = WEAPON_COOLDOWN;
+		weaponReady = true;
 	}
 }
 

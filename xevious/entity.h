@@ -69,10 +69,11 @@ protected:
     BoundingBox boundingBox;
     glm::vec2 get2DPosition();
 
+    glm::mat4 getTransformationMatrix();
+
     // @NOTE: This is probably a bad idea
 	void retrieveBoundingCube(models::Model model);
 private:
-    glm::mat4 getTransformationMatrix();
 };
 
 #endif // ENTITY_H
