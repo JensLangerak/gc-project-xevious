@@ -50,7 +50,7 @@ struct Vertex {
 namespace globals {
 	extern bool debugMode;
     extern GLuint mainProgram;
-
+	extern GLuint shadowProgram;
     extern GLuint debugProgram;
     extern GLuint boundingBoxVBO;
     extern GLuint boundingBoxVAO;

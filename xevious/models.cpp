@@ -165,8 +165,8 @@ namespace models {
     {
         bool result = loadModel(dragon, "resources/dragon.obj"); 
         bool result2 = loadModel(playerShip, "resources/ship.obj");
-        bool result3 = loadModel(starEnemy, "resources/starship.obj");   
-        bool result4 = loadModel(playerGun, "resources/cannon.obj");
+        bool result3 = loadModel(starEnemy, "resources/starship.obj");
+        bool result4 = loadModel(playerGun, "resources/dragon.obj");
         bool result5 = loadModel(david, "resources/dragon.obj");
 
         return result && result2 && result3 && result4;
@@ -174,23 +174,27 @@ namespace models {
     
     void activateTexture(Textures texture)
     {
+
         if (texture == Textures::None) {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            //glBindTexture(GL_TEXTURE_2D, 0);
             glUniform1i(glGetUniformLocation(globals::mainProgram, "useTexture"), 0);
             return;
         }
-        
+
+        //return;
+
         glUniform1i(glGetUniformLocation(globals::mainProgram, "useTexture"), 1);
-                
-        glActiveTexture(GL_TEXTURE0);
+
+        glActiveTexture(GL_TEXTURE0 + textures[(int) texture]);
 		glBindTexture(GL_TEXTURE_2D, textures[(int) texture]);
-        glUniform1i(glGetUniformLocation(globals::mainProgram, "tex"), 0);
+        glUniform1i(glGetUniformLocation(globals::mainProgram, "tex"), textures[(int) texture]);
     }
     
     void loadTexture(int index, const char *filename)
     {    
         PPMImage image(filename);
         glGenTextures(1, &textures[index]);
+        glActiveTexture(GL_TEXTURE_2D +  textures[index]);
         glBindTexture(GL_TEXTURE_2D, textures[index]);
         gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, image.sizeX, image.sizeY, 
 		GL_RGB, GL_UNSIGNED_BYTE, image.data);
@@ -216,7 +220,7 @@ namespace models {
     
     void drawModel(ModelType modelType)
     {
-        glUseProgram(globals::mainProgram);
+
         Model *model;
         switch(modelType) {
             case ModelType::Terrain:
@@ -257,11 +261,12 @@ namespace models {
 				Vertex vertex = {};
                  double x = sizeX / nbVertX * (i - 0.5 * nbVertX);
                  double z = sizeZ / nbVertZ * (j - 0.5 * nbVertZ);
-                 double y = 0.9 * sin(1 * x + 1 * z + 23.42)
-                  + 0.7 * sin(sin(x * 0.1 + 0.3) * x + 1 * z + 2.32)
-                    + 0.8 * sin(1 * x + 0 * cos(x * 0.3) + 1.12)
-                    + 0.6 * sin(cos(z * 0.2) * x + 1 * z + 6.32);
+                 double y = 0.9 * sin(3 * x + 3 * z + 23.42)
+                  + 0.7 * sin(sin(x * 0.3 + 0.3) * x  * 3+  3 * z + 2.32)
+                    + 0.8 * sin(3 * x + 0 * cos(x * 0.9) + 1.12)
+                    + 0.6 * sin(cos(z * 0.6) * x + 3 * z + 6.32);
 
+               //  y = 0;
                  vertex.pos = glm::vec3(x, y, z);
                  
                  vertex.normal = glm::vec3(0, 0, 0);
@@ -271,7 +276,7 @@ namespace models {
                 c = c > 1 ? 1 : c < 0 ? 0 : c;
                 vertex.color = glm::vec3(c, 1, c);
                 
-                 vertex.texCoord = glm::vec2(x * 0.2,z * 0.2);
+                 vertex.texCoord = glm::vec2(x * 0.6,z * 0.6);
                  
                  vertices[i][j] = vertex;
             }

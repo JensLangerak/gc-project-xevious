@@ -5,6 +5,7 @@ namespace globals {
     bool debugMode = false;
     GLuint mainProgram;
     GLuint debugProgram;
+    GLuint shadowProgram;
     GLuint boundingBoxVBO;
     GLuint boundingBoxVAO;
 }

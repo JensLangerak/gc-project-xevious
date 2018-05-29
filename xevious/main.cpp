@@ -37,7 +37,7 @@ using std::vector;
 
 // Configuration
 const int WIDTH = 800;
-const int HEIGHT = 600;
+const int HEIGHT = 800;
 
 Gamestate gamestate;
 
@@ -353,7 +353,70 @@ int main(int argc, char** argv)
 		}       
 	}
 
-	
+    globals::shadowProgram = glCreateProgram();
+    ////////////////// Load and compile shadow shader program
+    {
+        std::string vertexShaderCode = readFile("shaders/shadow.vert");
+        const char* vertexShaderCodePtr = vertexShaderCode.data();
+
+        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
+        glCompileShader(vertexShader);
+
+        std::string fragmentShaderCode = readFile("shaders/shadow.frag");
+        const char* fragmentShaderCodePtr = fragmentShaderCode.data();
+
+        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
+        glCompileShader(fragmentShader);
+
+        if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
+            std::cerr << "Shader(s) failed to compile!" << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        // Combine vertex and fragment shaders into single shader program
+        glAttachShader(globals::shadowProgram, vertexShader);
+        glAttachShader(globals::shadowProgram, fragmentShader);
+        glLinkProgram(globals::shadowProgram);
+
+        if (!checkProgramErrors(globals::shadowProgram)) {
+            std::cerr << "Shadow program failed to link!" << std::endl;
+            return EXIT_FAILURE;
+        }
+    }
+
+	//////////////////// Create Shadow Texture
+	GLuint texShadow;
+	const int SHADOWTEX_WIDTH  = 1024;
+	const int SHADOWTEX_HEIGHT = 1024;
+	glGenTextures(1, &texShadow);
+	glActiveTexture(GL_TEXTURE_2D + texShadow);
+	glBindTexture(GL_TEXTURE_2D, texShadow);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+	// Set behaviour for when texture coordinates are outside the [0, 1] range
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//////////////////// Create framebuffer for extra texture
+	GLuint framebuffer = 0;
+	glGenFramebuffers(1, &framebuffer);
+
+	/////////////////// Set shadow texure as depth buffer for this framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texShadow, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        return false;
+
+
 	// Load vertices of model
 	if (!models::loadModels())
 	{
@@ -364,17 +427,28 @@ int main(int argc, char** argv)
 	// @TODO: possibly change to top-down orthographic camera?
 	models::loadTextures();
 	camera.aspect = WIDTH / (float)HEIGHT;
-	camera.position = glm::vec3(0.f, 1.5f, 1.0f);
-	camera.forward  = -camera.position;
+	camera.position = glm::vec3(.3f,2.f, -0.3f); //TODO fix should be 0,2,0
+	camera.forward = glm::vec3(0.f, -1.0f, 0.f);
+	camera.up = glm::vec3(0.f,0.f,-1.f);
+	//camera.forward  = -camera.position;
     camera.useOrhogonal = true;
-    camera.width = 2;
-    camera.height = 2;
+    camera.width = 3;
+    camera.height = 3;
+  
+    mainLight.aspect = WIDTH / (float)HEIGHT;
+    mainLight.position = glm::vec3(-2.f,100.5f, -2.1f);
+    mainLight.forward = glm::vec3(2.0f,-100.f, 2.f);
+    mainLight.up = glm::vec3(0.f, 0.f, -1.0);
+    mainLight.far = 120.f;
+    mainLight.near = 90.01;
+    mainLight.useOrhogonal = false;//simulate far away;
+    mainLight.width = 3.5;
+    mainLight.height = 3.5;
 
-	mainLight.aspect = WIDTH / (float)HEIGHT;
-	mainLight.position = glm::vec3(-30.f, 100.f, 10.f);
-	mainLight.forward  = -mainLight.position;
-	
-	// Enable depth testing
+	mainLight.fov = glm::pi<float>() / 70.f; //todo position light
+
+    // Enable depth testing
+
 	glEnable(GL_DEPTH_TEST);
 
 	// ================== Setup Gamestate ================
@@ -396,12 +470,12 @@ int main(int argc, char** argv)
 	gamestate.entityList->push_back(testEnemy);
 
 	// @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
-	models::generateTerrain(30, 30, 100, 100);
+	models::generateTerrain(2.5, 2.5, 100, 100);
 	
 	Entity terrain;
 	terrain.model = models::ModelType::Terrain;
 	terrain.texture = models::Textures::Sand;
-	terrain.position =  glm::vec3(0.,-10.,-10.);
+	terrain.position =  glm::vec3(0.,-3.5,0.);
 
 	clock_t timeStartFrame = clock();
 	clock_t timeEndFrame = clock();
@@ -543,19 +617,76 @@ int main(int argc, char** argv)
 			updateMouse(window, camera.vpMatrix(), &gamestate);
 		}
 
+
+
+
+
+		//shadow
+
+		{
+			// Bind the off-screen framebuffer
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+			// Clear the shadow map and set needed options
+			glClearDepth(1.0f);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_DEPTH_TEST);
+
+			// Bind the shader
+			glUseProgram(globals::shadowProgram);
+
+			glm::mat4 vp = mainLight.vpMatrix();
+			// Set viewport size
+			glViewport(0, 0, SHADOWTEX_WIDTH, SHADOWTEX_HEIGHT);
+
+
+
+			// .... HERE YOU MUST ADD THE CORRECT UNIFORMS FOR RENDERING THE SHADOW MAP
+
+			glUniformMatrix4fv(glGetUniformLocation(globals::shadowProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(vp));
+
+
+			// Set view position
+			glUniform3fv(glGetUniformLocation(globals::shadowProgram, "viewPos"), 1, glm::value_ptr(mainLight.position));
+
+			// Execute draw command
+			for (int i = 0; i < gamestate.entityList->size(); ++i)
+			{
+				(*gamestate.entityList)[i]->draw(0, vp);
+			}
+       //     terrain.draw(0, vp);
+
+			// Unbind the off-screen framebuffer
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//			glfwSwapBuffers(window);
+		}
+//continue;
+
 		// Render section
 		{
 			// ====================== game render section ========================
 			// Bind the shader
 			glUseProgram(globals::mainProgram);
 
-			updateCamera(camera); //misschien niet nodig
+            glClearDepth(1.0f);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);
+            glActiveTexture(GL_TEXTURE0 + texShadow);
+            glBindTexture(GL_TEXTURE_2D, texShadow);
+            glUniform1i(glGetUniformLocation(globals::mainProgram, "texShadow"), texShadow);
+
+		//	updateCamera(camera); //misschien niet nodig
 			glm::mat4 vp = camera.vpMatrix();
 
 			//  glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 
-			glm::mat4 lightMVP = mainLight.vpMatrix();
-			glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));  
+
+	        glm::mat4 lightMVP = mainLight.vpMatrix();
+	        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));
+            glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "lightMVP"), 1, GL_FALSE, glm::value_ptr(lightMVP));
+	        // Set view position
+			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
+
 
 			// Set view position
 			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
