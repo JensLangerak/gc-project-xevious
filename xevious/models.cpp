@@ -248,7 +248,6 @@ namespace models {
     bool loadTextures()
     {
         textures.resize(1);
-        textures[0]=0;
         loadTexture((int) Textures::Sand, "resources/sand.ppm");
         
         return true;
