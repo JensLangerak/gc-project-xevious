@@ -18,6 +18,9 @@ struct Camera
 	float     fov;
 	float     aspect;
 
+    float width = 1.0;
+	float height = 1.0;
+	bool useOrhogonal = false;
 	Camera()
 	: position(glm::vec3(0, 0, 0))
 	, forward (glm::vec3(0, 0,-1))
@@ -38,9 +41,16 @@ struct Camera
 		return glm::perspective(fov, aspect, near, far);
 	}
 
+	glm::mat4 orthoPMatrix() const
+    {
+        return glm::ortho(-width/2.f, width/2.f, -height/2.f, height/2.f, near, far);
+    }
 	glm::mat4 vpMatrix() const
 	{
-		return pMatrix() * vMatrix();
+	    if (useOrhogonal)
+            return  orthoPMatrix() * vMatrix();
+	    else
+		    return pMatrix() * vMatrix();
 	}
 
 	void updatePosition(glm::vec3 speed)
