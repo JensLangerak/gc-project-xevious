@@ -15,20 +15,21 @@ struct Camera
 	float near;
 	float far;
 
-	float     fov;
-	float     aspect;
+	float fov;
+	float aspect;
 
     float width = 1.0;
 	float height = 1.0;
-	bool useOrhogonal = false;
+	bool useOrthogonal = false;
 	Camera()
 	: position(glm::vec3(0, 0, 0))
 	, forward (glm::vec3(0, 0,-1))
-	, up      (glm::vec3(0, 1, 0)) 
+	, up      (glm::vec3(0, 1, 0))
+    , near    (0.1f)
+    , far     (30.f)
 	, fov     (glm::pi<float>() / 4.f)
 	, aspect  (1.f)
-	, near    (0.1f)
-	, far     (30.f)
+
 	{}
 
 	glm::mat4 vMatrix() const
@@ -47,7 +48,7 @@ struct Camera
     }
 	glm::mat4 vpMatrix() const
 	{
-	    if (useOrhogonal)
+	    if (useOrthogonal)
             return  orthoPMatrix() * vMatrix();
 	    else
 		    return pMatrix() * vMatrix();

@@ -88,7 +88,8 @@ bool checkProgramErrors(GLuint program) {
 }
 
 // OpenGL debug callback
-void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+void APIENTRY debugCallback(GLenum source __attribute__((unused)), GLenum type __attribute__((unused)), GLuint id __attribute__((unused)),
+							GLenum severity, GLsizei length __attribute__((unused)), const GLchar* message, const void* userParam __attribute__((unused))) {
 	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
 		std::cerr << "OpenGL: " << message << std::endl;
 	}
@@ -170,7 +171,7 @@ void setupDebugging()
 	std::cout << "Xevious: Press P to enable debug mode\n";
 }
 
-void handleKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods)
+void handleKeyboard(GLFWwindow* window __attribute__((unused)), int key, int scancode __attribute__((unused)), int action, int mods __attribute__((unused)))
 {
 	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
 	// @TEST: Test moving bounding box1
@@ -385,7 +386,7 @@ void calculateShadowMap(GLuint &framebuffer, Camera & light)
     glUniform3fv(glGetUniformLocation(globals::shadowProgram, "viewPos"), 1, glm::value_ptr(light.position));
 
     // Execute draw command
-    for (int i = 0; i < gamestate.entityList->size(); ++i)
+    for (unsigned int i = 0; i < gamestate.entityList->size(); ++i)
     {
         (*gamestate.entityList)[i]->draw(0, vp);
     }
@@ -395,7 +396,90 @@ void calculateShadowMap(GLuint &framebuffer, Camera & light)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-int main(int argc, char** argv)
+void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vector<BulletEntity*> & bulletList, Entity &terrain)
+{
+    // ====================== game render section ========================
+    // Bind the shader
+    glUseProgram(globals::mainProgram);
+    glViewport(0, 0, WIDTH, HEIGHT);
+    glClearDepth(1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0 + texShadow);
+    glBindTexture(GL_TEXTURE_2D, texShadow);
+    glUniform1i(glGetUniformLocation(globals::mainProgram, "texShadow"), texShadow);
+
+    glm::mat4 vp = camera.vpMatrix();
+
+    //  glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+
+
+    glm::mat4 lightMVP = mainLight.vpMatrix();
+    glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));
+    glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "lightMVP"), 1, GL_FALSE, glm::value_ptr(lightMVP));
+    // Set view position
+    glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
+
+
+    // Set view position
+    glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
+
+    glClearDepth(1.0f);
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // @NOTE: Refactor into section that renders entity list
+    for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
+    {
+        (*it)->draw(0, vp);
+    }
+
+    terrain.draw(0, vp);
+
+    for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
+    {
+        (*it)->draw(0, vp);
+    }
+
+    // ====================== debug render section =======================
+    if (globals::debugMode)
+    {
+        // Set debug program shader
+        glUseProgram(globals::debugProgram);
+
+        glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
+        glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
+
+        for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
+        {
+            Entity* e = *it;
+            if (e->debugIsColliding)
+            {
+                e->drawBoundingCube(vp, hitColor);
+            }
+            else
+            {
+                e->drawBoundingCube(vp, normColor);
+            }
+        }
+
+        for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
+        {
+            BulletEntity* bullet = *it;
+            if (bullet->debugIsColliding)
+            {
+                bullet->drawBoundingCube(vp, hitColor);
+            }
+            else
+            {
+                bullet->drawBoundingCube(vp, normColor);
+            }
+        }
+    }
+
+}
+
+int main(int argc __attribute__((unused)), char** argv __attribute__((unused)))
 {
 	if (!glfwInit()) {
 		std::cerr << "Failed to initialize GLFW!" << std::endl;
@@ -445,8 +529,9 @@ int main(int argc, char** argv)
 
 	//////////////////// Create framebuffer for extra texture
 	GLuint framebuffer = 0;
-    if (!createFramebuffer(framebuffer, texShadow))
+    if (!createFramebuffer(framebuffer, texShadow)) {
         return false;
+    }
 
 	// Load vertices of model
 	if (!models::loadModels())
@@ -463,7 +548,7 @@ int main(int argc, char** argv)
 	camera.forward = glm::vec3(0.f, -1.0f, 0.f);
 	camera.up = glm::vec3(0.f,0.f,-1.f);
 	//camera.forward  = -camera.position;
-    camera.useOrhogonal = true;
+    camera.useOrthogonal = true;
     camera.width = 2.3;
     camera.height = 2.3;
   
@@ -473,7 +558,7 @@ int main(int argc, char** argv)
     mainLight.up = glm::vec3(-0.f, 0.0f, -5.0);
     mainLight.far = 120.f;
     mainLight.near = 90.01;
-    mainLight.useOrhogonal = true;//simulate far away;
+    mainLight.useOrthogonal = true;//simulate far away;
     mainLight.width = 3.5;
     mainLight.height = 3.5;
 
@@ -508,6 +593,7 @@ int main(int argc, char** argv)
 	// @TODO: Fix
 	BoundingBox gamebox = BoundingBox(-1.5, -5.5, 3., 10.);
 	gamebox.print();
+
 	while (!glfwWindowShouldClose(window)) 
 	{
 		glfwPollEvents();
@@ -642,99 +728,18 @@ int main(int argc, char** argv)
 
 
 
-		//shadow
         calculateShadowMap(framebuffer, mainLight);
 
-		//	glfwSwapBuffers(window);
+        //	glfwSwapBuffers(window);
 
 //continue;
+        render(texShadow, camera, entityList, bulletList, terrain);
 
-		// Render section
-		{
-			// ====================== game render section ========================
-			// Bind the shader
-			glUseProgram(globals::mainProgram);
-			glViewport(0, 0, WIDTH, HEIGHT);
-            glClearDepth(1.0f);
-            glClear(GL_DEPTH_BUFFER_BIT);
-            glEnable(GL_DEPTH_TEST);
-            glActiveTexture(GL_TEXTURE0 + texShadow);
-            glBindTexture(GL_TEXTURE_2D, texShadow);
-            glUniform1i(glGetUniformLocation(globals::mainProgram, "texShadow"), texShadow);
+        //simple.drawGrid(vp * other.getTransformationMatrix());
+        glfwSwapBuffers(window);
+        //sleep();
+    }
 
-			glm::mat4 vp = camera.vpMatrix();
-
-			//  glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-
-
-	        glm::mat4 lightMVP = mainLight.vpMatrix();
-	        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));
-            glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "lightMVP"), 1, GL_FALSE, glm::value_ptr(lightMVP));
-	        // Set view position
-			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
-
-
-			// Set view position
-			glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
-
-			glClearDepth(1.0f);  
-			glClearColor(0.f, 0.f, 0.f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			// @NOTE: Refactor into section that renders entity list
-			for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
-			{
-				(*it)->draw(0, vp);
-			}
-
-            terrain.draw(0, vp);
-
-			for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
-			{
-				(*it)->draw(0, vp);
-			}
-
-			// ====================== debug render section =======================
-			if (globals::debugMode)
-			{
-				// Set debug program shader
-				glUseProgram(globals::debugProgram);
-
-				glm::vec3 hitColor = glm::vec3(1.0, 0.0, 0.0);
-				glm::vec3 normColor = glm::vec3(0.0, 0.0, 1.0);
-
-				for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
-				{
-					Entity* e = *it;
-					if (e->debugIsColliding)
-					{
-						e->drawBoundingCube(vp, hitColor);
-					}
-					else 
-					{
-						e->drawBoundingCube(vp, normColor);
-					}
-				}
-
-				for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
-				{
-					BulletEntity* bullet = *it;
-					if (bullet->debugIsColliding)
-					{
-						bullet->drawBoundingCube(vp, hitColor);
-					}
-					else 
-					{
-						bullet->drawBoundingCube(vp, normColor);
-					}
-				}
-			}
-
-			//simple.drawGrid(vp * other.getTransformationMatrix());
-			glfwSwapBuffers(window);
-			//sleep();
-		}
-	}
 	
 	glfwDestroyWindow(window);
 	

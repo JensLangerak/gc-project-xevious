@@ -91,7 +91,7 @@ void BossEntity::onCollision(Entity* entity)
 	}
 }
 
-void BossEntity::update(double tick, Gamestate* state)
+void BossEntity::update(double tick, Gamestate* state __attribute__((unused)))
 {
 	float angularVelocity = 3.14/2;
 	orientation.y += angularVelocity * tick;
@@ -115,7 +115,7 @@ void BossEntity::update(double tick, Gamestate* state)
 	}
 }
 
-void BossEntity::draw(long tick, glm::mat4 projView)
+void BossEntity::draw(long tick __attribute__((unused)), glm::mat4 projView)
 {
 	// get mvp matrix by calculating m matrix
 	// Get transformation matrix
