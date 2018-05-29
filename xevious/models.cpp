@@ -188,7 +188,7 @@ namespace models {
         bool result = loadModel(dragon, "resources/dragon.obj"); 
         bool result2 = loadModel(playerShip, "resources/ship.obj");
         bool result3 = loadModel(starEnemy, "resources/starship.obj");
-        bool result4 = loadModel(playerGun, "resources/dragon.obj");
+        bool result4 = loadModel(playerGun, "resources/cannon.obj");
         bool result5 = loadModel(david, "resources/dragon.obj");
 
 
