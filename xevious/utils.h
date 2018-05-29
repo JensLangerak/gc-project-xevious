@@ -33,7 +33,7 @@ struct Gamestate
 	std::vector<Entity*>* entityList;
 	std::vector<BulletEntity*>* bulletList;
 	double aiTimer;
-	double stageTimer = 0.;
+	double stageTimer = 10.;
 	int stage = 0;
 	GameMode mode = GameMode::Playing; // @TODO: switch to Menu once implemented
 };
