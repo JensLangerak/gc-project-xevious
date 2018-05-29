@@ -93,17 +93,17 @@ void BossEntity::onCollision(Entity* entity)
 
 void BossEntity::update(double tick, Gamestate* state)
 {
-	float angularVelocity = 0.001;
+	float angularVelocity = 3.14/2;
 	orientation.y += angularVelocity * tick;
 
 	accTime += tick;
-	position.x = sin(accTime * 0.001) * 0.7;
+	position.x = sin(accTime * 3.14/2) * 0.7;
 	
 	// First move towards player
 	if (stage == 0)
 	{
 		// move into the stage
-		position.z += 0.0007 * tick;
+		position.z += 1. * tick;
 
 		if (position.z >= -.5)
 		{
@@ -131,11 +131,6 @@ void BossEntity::draw(long tick, glm::mat4 projView)
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "model"), 1, GL_FALSE, glm::value_ptr(projView));
 			glm::vec3 color = glm::vec3(1., 0., 0.);
 			glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(color));
-
-			//level1->drawGrid(projView);
-			// glUseProgram(globals::mainProgram);
-			// glBindVertexArray(level1->vao);
-			// glDrawArrays(GL_TRIANGLES, 0, level1->simplifiedMesh.size());
 
 			// Draw default entity at location for now
 			models::drawModel(models[i]);

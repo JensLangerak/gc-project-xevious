@@ -263,7 +263,7 @@ void veryObviousAI(Gamestate* state, double delta)
 			state->entityList->push_back(enemy);
 
 			// Reset timer
-			state->aiTimer = 1000.0;
+			state->aiTimer = 1.0;
 		} else
 		{
 			state->aiTimer -= delta;
@@ -487,13 +487,6 @@ int main(int argc, char** argv)
 	player = gamestate.player;
 	gamestate.entityList->push_back(player);
 
-	EnemyEntity* testEnemy = new EnemyEntity();
-	testEnemy->position = glm::vec3(.0, .0, -1.);
-	testEnemy->model = models::ModelType::StarEnemy;
-	testEnemy->color = glm::vec3(0., 1., 1.);
-	testEnemy->scale = 0.05;
-	testEnemy->boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
-	gamestate.entityList->push_back(testEnemy);
 
 	// @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
 	models::generateTerrain(2.5, 2.5, 100, 100);
@@ -514,7 +507,8 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 		timeStartFrame = timeEndFrame;
 		timeEndFrame = clock();
-		double timeDelta = difftime(timeEndFrame, timeStartFrame);
+		double timeDelta = ((double)timeEndFrame - timeStartFrame) / CLOCKS_PER_SEC;
+		// double timeDelta = ((float)timeEndFrame)/CLOCKS_PER_SEC -  ((float)timeStartFrame)/CLOCKS_PER_SEC;
 		//std::cout << "Timedelta: " << timeDelta << "\n"; 
 		//std::cout << "FPS: " << timeDelta << std::endl; 
 

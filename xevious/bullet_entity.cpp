@@ -24,7 +24,7 @@ BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 void BulletEntity::update(double tick, Gamestate* state)
 {
 	// @NOTE: Move velocity into global, or into constructor
-	float velocity = 0.001 * tick;
+	float velocity = 1. * tick;
 	position += direction * velocity;
 
 	// @TODO: Mark for deletion once out of screen

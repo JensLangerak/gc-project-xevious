@@ -39,18 +39,17 @@ void EnemyEntity::update(double tick, Gamestate* state)
 	else if (!isAlive)
 	{
 		// (Spiral to the ground)
-		double angular_velocity = 0.005;
-		double falling_velocity = 0.0005;
+		double angular_velocity = 3.14;
+		double falling_velocity = 0.5;
 
 		orientation.y += angular_velocity * tick;
 		position.y -= falling_velocity * tick;
 
 		position += direction * MOVEMENT_SPEED;
 
-		if (position.y < -1.0)
+		if (position.y < -2.0)
 		{
 			canBeRemoved = true;
-
 			// Change color to grey to distinguish from alive enemies;
 			color = glm::vec3(.7, .7, .7);
 			//std::cout << "Enemy died!!\n";
