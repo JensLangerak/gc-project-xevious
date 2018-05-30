@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "bullet_entity.h"
 #include "player_entity.h"
-
+#include "math.h"
 #include <iostream>
 #include <utility>
 
@@ -162,6 +162,8 @@ void BossEntity::update(double tick, Gamestate* state )
 				glm::vec3 bulletLoc3 = glm::vec3(bulletLocation.x, bulletLocation.y, bulletLocation.z);
 				glm::vec3 bulletDir = state->player->position - bulletLoc3;
 				BulletEntity* bullet = new BulletEntity(bulletLoc3, bulletDir);
+                bullet->texture = models::Textures::Beam2;
+				bullet->orientation = glm::vec3(0., std::atan2(bulletDir.x, bulletDir.z), 0);
 				state->entityList->push_back(bullet);
 				// @TODO: Mark bullet as intended for player!!!
 				break;

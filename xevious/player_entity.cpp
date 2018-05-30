@@ -61,7 +61,8 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 				
 				glm::vec3 dir = glm::normalize(glm::vec3(sin(angle), 0., -cos(angle)));
 				BulletEntity* bullet = new BulletEntity(pos, dir);
-
+				bullet->texture = models::Textures::Beam1;
+                bullet->orientation = glm::vec3(0, -angle, 0);
 				state->bulletList->push_back(bullet);
 				weaponReady = false;
 			}

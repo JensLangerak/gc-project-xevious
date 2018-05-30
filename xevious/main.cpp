@@ -433,10 +433,7 @@ void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vecto
 		(*it)->draw(0, vp);
 	}
 
-    terrain.terrain1.draw(0, vp);
-    terrain.terrain2.draw(0, vp);
-    terrain.terrain3.draw(0, vp);
-    terrain.terrain4.draw(0, vp); //TODO
+	terrain.drawChunks(0, vp);
 
 
 	for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)

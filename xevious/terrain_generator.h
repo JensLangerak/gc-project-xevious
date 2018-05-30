@@ -7,6 +7,9 @@
 
 #include "entity.h"
 
+
+#define NUMBER_OF_CHUNKS 4
+
 class TerrainGenerator
 {
 public:
@@ -15,10 +18,8 @@ public:
     void UpdateChunk(Entity &chunk, bool update);
     void InitTerrainBuffers();
     void UpdateChunks(double delta);
-    Entity terrain1;
-    Entity terrain2;
-    Entity terrain3;
-    Entity terrain4;
+    void drawChunks(long tick , glm::mat4 projView);
+    Entity chunks[NUMBER_OF_CHUNKS];
 
     Entity * lastUpdated;
 protected:

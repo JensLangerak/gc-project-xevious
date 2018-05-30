@@ -16,6 +16,7 @@ out vec3 fragPos;
 out vec3 fragNormal;
 out vec2 fragTexCoord;
 out vec3 fragColor;
+
 void main() {
 	// Transform 3D position into on-screen position
     gl_Position = mvp * vec4(pos, 1.0);
