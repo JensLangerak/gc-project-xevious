@@ -136,10 +136,10 @@ void TerrainGenerator::InitTerrainBuffers(){
 }
 void TerrainGenerator::UpdateChunks(double delta)
 {
-    terrain1.position.z += delta * 2.5;
-    terrain2.position.z += delta * 2.5;
-    terrain3.position.z += delta * 2.5;
-    terrain4.position.z += delta * 2.5;
+    terrain1.position.z += delta * 1.;
+    terrain2.position.z += delta * 1.;
+    terrain3.position.z += delta * 1.;
+    terrain4.position.z += delta * 1.;
 
     if (terrain1.position.z > 2 * chunkHeight){
         UpdateChunk(terrain1, true);

@@ -33,6 +33,7 @@
 #include "bullet_entity.h"
 #include "boss_entity.h"
 #include "terrain_generator.h"
+#include <chrono>
 // using std::list;
 using std::vector;
 
@@ -702,17 +703,18 @@ int main(int argc , char** argv )
 
     TerrainGenerator terrainGenerator(2.5,2.5/2.);
 
-	clock_t timeStartFrame = clock();
-	clock_t timeEndFrame = clock();
 
+    auto timeStartFrame = std::chrono::system_clock::now();
+    auto timeEndFrame = std::chrono::system_clock::now();
 	while (!glfwWindowShouldClose(window)) 
 	{
 		glfwPollEvents();
 		timeStartFrame = timeEndFrame;
-		timeEndFrame = clock();
+        timeEndFrame = std::chrono::system_clock::now();
 
-		double timeDelta = ((double)timeEndFrame - timeStartFrame) / CLOCKS_PER_SEC; 
-		// std::cout << "FPS: " << 1./timeDelta << std::endl; 
+		double timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(timeEndFrame - timeStartFrame).count() / 1000.0f;
+
+		        // std::cout << "FPS: " << 1./timeDelta << std::endl;
 
 		// @NOTE: For convenience sake
 		update(window, gamestate, timeDelta);
