@@ -190,19 +190,14 @@ void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int
         bool pressed = action == GLFW_PRESS;
         if (key == GLFW_KEY_W) {
             forwardPressed = pressed;
-            std::cout << "forward: " << (pressed ? "true" : "false" )<< std::endl;
         } else if (key == GLFW_KEY_A) {
             leftPressed = pressed;
-            std::cout << "left: " << (pressed ? "true" : "false" )<< std::endl;
         } else if (key == GLFW_KEY_S) {
             downPressed = pressed;
-            std::cout << "down: " << (pressed ? "true" : "false" )<< std::endl;
         } else if (key == GLFW_KEY_D) {
             rightPressed = pressed;
-            std::cout << "right: " << (pressed ? "true" : "false" )<< std::endl;
         } else if (key == GLFW_KEY_SPACE) {
             spacePressed = pressed;
-            std::cout << "space: " << (pressed ? "true" : "false" )<< std::endl;
         } else if (key == GLFW_KEY_Q) {
       //      player->performAction(PlayerAction::ROLL, &gamestate);
         }
@@ -225,7 +220,6 @@ void handleMouseButtons(GLFWwindow* window, int button, int action, int mods)
     if (action == GLFW_PRESS || action == GLFW_RELEASE)
     {
         mousePressed = action == GLFW_PRESS;
-        std::cout << "mouse: " << (action == GLFW_PRESS ? "true" : "false" )<< std::endl;
     }
 }
 
@@ -717,7 +711,7 @@ int main(int argc , char** argv )
 
         double timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(timeEndFrame - timeStartFrame).count() / 1000.0f;
 
-        if (player->isAlive) {
+        if (gamestate.mode == GameMode::Playing) {
             if (forwardPressed) {
                 player->performAction(PlayerAction::MOVE_FORWARD, &gamestate, timeDelta);
             } else if (leftPressed) {

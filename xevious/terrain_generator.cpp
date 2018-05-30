@@ -137,7 +137,6 @@ void TerrainGenerator::UpdateChunks(double delta)
             UpdateChunk(chunks[i], true);
             chunks[i].position.z = lastUpdated->position.z - chunkHeight;
             lastUpdated = &chunks[i];
-            std::cout << "update " << i << std::endl;
         }
     }
 }
