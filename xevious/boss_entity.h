@@ -53,7 +53,7 @@ private:
 	int moonLives[NUMBER_OF_PLANETS];
 	int planetLives[NUMBER_OF_PLANETS];
 
-	int totalLives = 16;			// 4 lives * 4 heads
+	int totalLives = 17;			// 4 lives * 4 heads
 	float bulletCountdown = 2.0;
 	bool bulletStormActive = true;
 	int nextShooter = 0;
