@@ -81,6 +81,16 @@ void BossEntity::onCollision(Entity* entity)
 			if (moonLives[i] <= 0)
 			{
 				planetLives[i] -= 1;
+				if (planetLives[i] == 3)
+				{
+					planetModel =  models::ModelType::BossDetailLevel1;
+				} else if (planetLives[i] == 2)
+				{
+					planetModel =  models::ModelType::BossDetailLevel2;
+				} else if (planetLives[i] == 2)
+				{
+					planetModel =  models::ModelType::BossDetailLevel3;
+				}
 			}
 			// @TODO: Else, play some kind of shield animation?
 		}
@@ -90,6 +100,16 @@ void BossEntity::onCollision(Entity* entity)
 		if (collisionBox.checkIntersection(enemyBox))
 		{
 			moonLives[i] -= 1;
+			if (moonLives[i] == 3)
+			{
+				moonModel =  models::ModelType::BossDetailLevel1;
+			} else if (moonLives[i] == 2)
+			{
+				moonModel =  models::ModelType::BossDetailLevel2;
+			} else if (moonLives[i] == 2)
+			{
+				moonModel =  models::ModelType::BossDetailLevel3;
+			}
 		}
 	}
 	totalLives -= 1;
