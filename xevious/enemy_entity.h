@@ -13,6 +13,8 @@ public:
 	void onCollision(Entity* entity);
 	EntityType type = EntityType::Enemy;
 	glm::vec3 direction;
+
+	int lives = 1;
 };
 
 #endif

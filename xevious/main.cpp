@@ -267,6 +267,12 @@ void veryObviousAI(Gamestate* state, double delta)
 			EnemyEntity* enemy = new EnemyEntity(glm::vec2(randX, -1.5));
 			state->entityList->push_back(enemy);
 
+			if ((float) rand() / (float) RAND_MAX > 0.8)
+			{
+				enemy->color = glm::vec3(0.8, 0.2, 0.0);
+				enemy->lives = 3;
+			}
+
 			// Reset timer
 			state->aiTimer = 1.0;
 		} else
