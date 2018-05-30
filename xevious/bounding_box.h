@@ -24,8 +24,6 @@ public:
 	// @TEST: After debugging, this should be moved into protected
 	glm::vec2 topLeft;
 	glm::vec2 dimensions;
-
-protected:
 };
 
 
@@ -40,7 +38,7 @@ public:
 	void draw(glm::mat4 projView);
 	void print();
 	BoundingBox getProjectedBoundingBox(glm::mat4 transform);
-protected:
+public:
 	glm::vec3 farBottomLeft;
 	glm::vec3 dimensions;
 };

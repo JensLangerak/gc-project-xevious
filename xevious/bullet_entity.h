@@ -18,7 +18,11 @@ public:
 	EntityType type = EntityType::Bullet;
 private:
 	glm::vec3 direction;
-	
+
+	bool hasCollided;
+	float flashRemaining;
+	glm::vec3* lightPos;
+	glm::vec3 lightPosOffset;
 };
 
 #endif

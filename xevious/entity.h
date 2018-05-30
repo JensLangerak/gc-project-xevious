@@ -44,6 +44,7 @@ public:
 
     glm::vec3 orientation;
     glm::vec3 position;
+    glm::vec3 bbCenterOffset;
 
     float scale = 1.;
     glm::vec3 color = glm::vec3(1,1,1); //tijdelijk (Denk ik)
@@ -61,19 +62,19 @@ public:
     bool isCollidable = true;
     bool isAlive = true;
 
+    BoundingCube boundingCube;
+    BoundingBox boundingBox;
     // ============= Debug related ==================
     bool debugIsColliding = false;
 protected:    
     // Collision
-    BoundingCube boundingCube;
-    BoundingBox boundingBox;
+
     glm::vec2 get2DPosition();
 
     glm::mat4 getTransformationMatrix();
 
     // @NOTE: This is probably a bad idea
 	void retrieveBoundingCube(models::Model model);
-private:
 };
 
 #endif // ENTITY_H

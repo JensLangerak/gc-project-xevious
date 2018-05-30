@@ -110,13 +110,7 @@ glm::mat4 PlayerEntity::getWeaponTransform()
 	translation[3] = vecTranslation;
 
 	// Horizontal rotation (gun orientation) matrix
-	glm::mat4 rotation = glm::mat4();
-	rotation[0][0] = cos(weaponAngle);
-	rotation[2][0] = sin(weaponAngle);
-	rotation[1][1] = 1.;
-	rotation[2][0] = -sin(weaponAngle);
-	rotation[2][2] = cos(weaponAngle);
-	rotation[3][3] = 1.;
+	glm::mat4 rotation = getRotationMatrix(0, -weaponAngle, 0);
 
 	return translation * getScalingMatrix(weaponScale) * rotation;
 }

@@ -230,14 +230,14 @@ void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 	// Calculate current position
 	glm::vec4 pos = gamestate->player->getScreenPosition(vp);
 
-	glm::vec2 cannonPos = glm::vec2(pos.x, pos.y);
+	glm::vec2 cannonPos = glm::vec2(pos.x / pos.w, pos.y / pos.w);
 	double mouseX;
 	double mouseY;
 	glfwGetCursorPos(window, &mouseX, &mouseY);
-	// std::cout << "Mouse x, y: " << mouseX << ", " << mouseY << "\n";
-	// std::cout << "Projected " << cannonPos.x << ", " << cannonPos.y << "\n";
 
-	glm::vec2 dir = glm::normalize(glm::vec2((mouseX / WIDTH) * 4 - 2, (mouseY / HEIGHT) * 4 - 2) - cannonPos);
+	glm::vec2 cannonAbs = glm::vec2((cannonPos.x + 1.0) / 2 * WIDTH, (-cannonPos.y + 1.0) / 2 * HEIGHT);
+	glm:: vec2 dir = glm::normalize(glm::vec2(mouseX, mouseY) - cannonAbs);
+
 
 	// Extract angle
 	float angle = atan2(dir.y, dir.x);
@@ -418,9 +418,6 @@ void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vecto
 	glm::mat4 lightMVP = mainLight.vpMatrix();
 	glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));
 	glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "lightMVP"), 1, GL_FALSE, glm::value_ptr(lightMVP));
-    // Set view position
-	glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
-
 
     // Set view position
 	glUniform3fv(glGetUniformLocation(globals::mainProgram, "viewPos"), 1, glm::value_ptr(camera.position));
@@ -603,6 +600,8 @@ int main(int argc , char** argv )
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Xevious", nullptr, nullptr);
 	if (!window) {

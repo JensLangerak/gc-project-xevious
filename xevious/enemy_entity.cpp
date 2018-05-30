@@ -16,6 +16,8 @@ EnemyEntity::EnemyEntity(glm::vec2 pos)
     color = glm::vec3(0., 1., 1.);
     scale = 0.05;
     boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
+	
+	bbCenterOffset = 0.5f * boundingCube.dimensions;
     type = EntityType::Enemy;
 }
 

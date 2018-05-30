@@ -8,6 +8,8 @@ layout(location = 4) uniform sampler2D tex;
 layout(location = 5) uniform bool useTexture = false;
 layout(location = 7) uniform sampler2D texShadow;
 layout(location = 8) uniform mat4 lightMVP;
+layout(location = 9) uniform vec3 lightBulletPos = vec3(-6., -6., -6.);
+layout(location = 10) uniform float flashRadius = 0.4;
 // Per-vertex attributes
 
 
@@ -61,6 +63,24 @@ void main() {
     vec3 specular =  vec3(1.0, 1.0, 1.0) * pow(ps , 16);
     vec3 result = diffuse + specular;
     result = result;
+
+    // @TODO: Bullet light (flash) section
+    // @NOTE(WARNING): This is extremely slow
+    // @TODO: change to 2d coordinate comparisons
+
+    // float distToBullet = length((lightBulletPos - fragPos).xz);
+    // if (lightBulletPos.x > -5. && lightBulletPos.y > -5.  && lightBulletPos.z > -5. && distToBullet < flashRadius)
+    // {
+    //     vec3 lBullet = normalize(lightBulletPos - fragPos);
+    //     float dBullet = clamp(dot(lBullet, fragNormal), 0, 1);
+    //     vec3 diffuseBullet = dBullet * vec3(0.95, 0.05, 0) * exp(-distToBullet);
+    //     vec3 hBullet = normalize(lBullet + h);
+    //     float psBullet = clamp(dot(fragNormal, hBullet), 0, 1);
+    //     vec3 specularBullet = vec3(0.95, 0.05, 0) * pow(psBullet, 16) * exp(-distToBullet);
+
+
+    //     result = result + diffuseBullet + specularBullet;        
+    // }
 
     result = clamp(result, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0));
     outColor = vec4(result * shadowScalar, 1.0);
