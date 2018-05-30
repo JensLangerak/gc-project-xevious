@@ -9,9 +9,12 @@
 #include <iostream>
 #include <utility>
 
+
+#define BULLET_DELAY 0.5
+
 BossEntity::BossEntity()
 {
-	scale = 0.3;
+	scale = 0.4;
 	radius = 2.;
 	centerOffsets[0] = glm::vec3(1., 0., 0.) * radius;
 	centerOffsets[1] = glm::vec3(-1., 0., 0.) * radius;
@@ -119,7 +122,7 @@ void BossEntity::update(double tick, Gamestate* state )
 	orientation.y += angularVelocity * tick;
 
 	accTime += tick;
-	position.x = sin(accTime * 3.14/2) * 0.7;
+	position.x = sin(accTime * 3.14/3) * 0.7;
 	
 	// First move towards player
 	if (stage == 0)
@@ -151,7 +154,6 @@ void BossEntity::update(double tick, Gamestate* state )
 		
 		for (int i = 0; i < 4; ++i)
 		{
-			// @TODO: fix
 			if (lives[positions[i].index] > 0)
 			{
 				// Shoot from here
@@ -166,7 +168,7 @@ void BossEntity::update(double tick, Gamestate* state )
 			}
 		}
 
-		bulletCountdown = 0.2;
+		bulletCountdown = BULLET_DELAY;
 	} else {
 		bulletCountdown -= tick;
 	}
