@@ -721,13 +721,17 @@ int main(int argc , char** argv )
         if (gamestate.mode == GameMode::Playing) {
             if (forwardPressed) {
                 player->performAction(PlayerAction::MOVE_FORWARD, &gamestate, timeDelta);
-            } else if (leftPressed) {
+            }
+            if (leftPressed) {
                 player->performAction(PlayerAction::MOVE_LEFT, &gamestate, timeDelta);
-            } else if (downPressed) {
+            }
+            if (downPressed) {
                 player->performAction(PlayerAction::MOVE_BACKWARD, &gamestate, timeDelta);
-            } else if (rightPressed) {
+            }
+            if (rightPressed) {
                 player->performAction(PlayerAction::MOVE_RIGHT, &gamestate, timeDelta);
-            } else if (spacePressed || mousePressed) {
+            }
+            if (spacePressed || mousePressed) {
                 player->performAction(PlayerAction::SHOOT, &gamestate, timeDelta);
             }
         }
