@@ -9,7 +9,7 @@
 #include <iostream>
 #include <utility>
 
-#define BULLET_DELAY 0.5
+#define BULLET_DELAY 1.5
 
 #define PI 3.14
 
@@ -157,20 +157,45 @@ glm::mat4 BossEntity::getMoonSubMatrix(int i)
 
 void BossEntity::update(double tick, Gamestate* state)
 {
+
 	if (currentState == BossState::Entering)
 	{
 		position.z += 1.0 * tick;
 		if (position.z >= -0.5)
 		{
+
 			currentState = BossState::Shooting;
 		}
 	}
 	if (currentState == BossState::Shooting)
 	{
+
+        bulletCountdown -= tick;
+	    bool shoot = bulletCountdown <= 0.f;
+        if (shoot) {
+            nextShooter++;
+            nextShooter = nextShooter % NUMBER_OF_PLANETS;
+
+            bulletCountdown = BULLET_DELAY;
+        }
 		for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 		{
 			moonAngles[i] += moonVelocity * tick;
 			planetAngles[i] += planetVelocity * tick;
+
+			if (planetLives[i] > 0 && shoot && i == nextShooter) {
+                glm::vec3 pos =glm::vec3( getPlanetMatrix(i) * getScalingMatrix(planetSize) * glm::vec4(position, 1.0));
+				glm::vec3 dir =state->player->position - pos;
+                BulletEntity* bullet = new BulletEntity(pos, dir);
+                bullet->texture = models::Textures::Beam2;
+                bullet->orientation = glm::vec3(0, std::atan2(dir.x, dir.z), 0);
+
+                state->entityList->push_back(bullet);
+
+			}
+
+
+
 		}	
 	} else if (currentState == BossState::Dying)
 	{
