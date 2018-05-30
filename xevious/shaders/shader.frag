@@ -40,7 +40,7 @@ void main() {
         // Shadow map coordinate corresponding to this fragment
         vec2 shadowMapCoord = fragLightCoord.xy;
 
-        float shadowScalar = 1.0;
+     /*   float shadowScalar = 1.0;
         if (!(shadowMapCoord.x < 0. || shadowMapCoord.x > 1. || shadowMapCoord.y < 0. || shadowMapCoord.y > 1.))
         {
              float shadowMapDepth = texture(texShadow, shadowMapCoord).x;
@@ -48,6 +48,40 @@ void main() {
                shadowScalar = 0.1;
      //TODO soft shadows? average?
         }
+       */
+
+            vec2 sizes = textureSize(texShadow, 0);
+            float xOffset = 1.0/sizes.x;
+            float yOffset = 1.0/sizes.y;
+
+            int sampleArea = 5;
+            int start = -(sampleArea - 1) / 2;
+            float hits = 0;
+
+            for (int x = start; x < sampleArea-  start; x++)
+            {
+                vec2 testCoord = shadowMapCoord;
+                testCoord.x = shadowMapCoord.x - x * xOffset;
+
+                for (int y = start; y < sampleArea - start; y++)
+                {
+                    testCoord.y = shadowMapCoord.y - y * xOffset;
+                    float shadowMapDepth = texture(texShadow, testCoord).x;
+                    if (shadowMapDepth + 0.001 < fragLightCoord.z)
+                       hits += 1.0;
+                }
+            }
+            float shadowScalar = 1 - hits / 25;
+
+
+
+
+
+
+
+
+
+
 
     float d = clamp(dot(l, fragNormal), 0, 1);
     vec4 baseColor = vec4(fragColor * color, 1.0); //elements wise multiplication

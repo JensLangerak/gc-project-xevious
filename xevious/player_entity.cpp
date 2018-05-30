@@ -7,6 +7,7 @@
 #include "bullet_entity.h"
 
 #define PI 3.14
+#define MAX_LIVES 20
 
 #define WEAPON_COOLDOWN 0.3
 
@@ -25,9 +26,10 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 	type = EntityType::Player;
 
 	// -------------- Gameplay section ------------------
-	lives = 20;
+	lives = MAX_LIVES;
 	weaponCooldown = WEAPON_COOLDOWN;
 	weaponReady = true;
+    color = glm::vec3(0.,1.,0.);
 }
 
 void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
@@ -61,7 +63,8 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 				
 				glm::vec3 dir = glm::normalize(glm::vec3(sin(angle), 0., -cos(angle)));
 				BulletEntity* bullet = new BulletEntity(pos, dir);
-
+				bullet->texture = models::Textures::Beam1;
+                bullet->orientation = glm::vec3(0, -angle, 0);
 				state->bulletList->push_back(bullet);
 				weaponReady = false;
 			}
@@ -136,6 +139,7 @@ void PlayerEntity::onCollision(Entity* entity )
 {
 	// Decrease life by 1
 	lives -= 1;
+    color = glm::vec3((double)(MAX_LIVES - lives)/MAX_LIVES, (double) lives / MAX_LIVES, 0.);
 	std::cout << "Player has " << lives << " left\n"; 
 }
 

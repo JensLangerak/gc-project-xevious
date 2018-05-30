@@ -12,6 +12,9 @@
 // Library for loading .OBJ model
 #include <tiny_obj_loader.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,6 +27,9 @@
 #include "bounding_box.h"
 #include "loadppm.h"
 #include "mesh_simplification.h"
+
+
+
 
 namespace models {    
     Model dragon;
@@ -192,10 +198,11 @@ namespace models {
     void loadBullet()
     {
         bullet.vertices.clear();
-        Vertex bottomLeft = {{-1, 0, 1}, {0, 1, 0}, {0, 0, 0}, {0, 1}};
-        Vertex bottomRight = {{1, 0, 1}, {0, 1, 0}, {0, 0, 0}, {1, 1}}; 
-        Vertex topRight = {{1, 0, -1}, {0, 1, 0}, {0, 0, 0}, {1, 0}};
-        Vertex topLeft = {{-1, 0, -1}, {0, 1, 0}, {0, 0, 0}, {0, 0}}; 
+        Vertex bottomLeft = {{-1, 0, 1}, {0, 1, 0}, {1, 1, 1}, {0, 1}};
+        Vertex bottomRight = {{1, 0, 1}, {0, 1, 0}, {1, 1, 1}, {1, 1}};
+        Vertex topRight = {{1, 0, -1}, {0, 1, 0}, {1, 1, 1}, {1, 0}};
+        Vertex topLeft = {{-1, 0, -1}, {0, 1, 0}, {1, 1, 1}, {0, 0}};
+
 
         bullet.vertices.push_back(bottomLeft);
         bullet.vertices.push_back(bottomRight);
@@ -251,7 +258,7 @@ namespace models {
     }
     
     void loadTexture(int index, const char *filename)
-    {    
+    {
         PPMImage image(filename);
         glGenTextures(1, &textures[index]);
         glActiveTexture( GL_TEXTURE0 +  textures[index]);
@@ -265,15 +272,17 @@ namespace models {
 
         // Set interpolation for texture sampling (GL_NEAREST for no interpolation)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     
     bool loadTextures()
     {
-        textures.resize(1);
+        textures.resize(3);
+
+        loadTexture((int) Textures::Beam1, "resources/beam1.ppm");
+        loadTexture((int) Textures::Beam2, "resources/beam2.ppm");
         loadTexture((int) Textures::Sand, "resources/sand.ppm");
-        
         return true;
     }
 

@@ -35,6 +35,8 @@ namespace models {
     enum class Textures{
         None = -1,
         Sand = 0,
+        Beam1,
+        Beam2
     };
     
     struct Model {
