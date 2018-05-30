@@ -27,7 +27,7 @@ public:
     // ============= Gameplay related ============
 	void update(double tick, Gamestate* state);
 	void onCollision(Entity* entity);
-	void performAction(PlayerAction action, Gamestate* state);
+	void performAction(PlayerAction action, Gamestate* state, double timeDelta);
 	BoundingBox getProjectedBoundingBox();
 
 	// @NOTE: Temporarily for testing only
