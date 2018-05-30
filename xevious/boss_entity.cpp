@@ -10,16 +10,17 @@
 #include <utility>
 
 #define BULLET_DELAY 0.5
-#define NUMBER_OF_PLANETS 2
+
 #define PI 3.14
 
 BossEntity::BossEntity()
 {
-	planetModel = models::ModelType::Dragon;
-	moonModel = models::ModelType::Dragon;
+
 
 	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 	{
+		planetModel[i] = models::ModelType::Dragon;
+		moonModel[i] = models::ModelType::Dragon;
 		// Set initial angles
 		planetAngles[i] = PI * i;
 		moonAngles[i] = PI/2 * i;
@@ -83,13 +84,13 @@ void BossEntity::onCollision(Entity* entity)
 				planetLives[i] -= 1;
 				if (planetLives[i] == 3)
 				{
-					planetModel =  models::ModelType::BossDetailLevel1;
+                    planetModel[i]  =  models::ModelType::BossDetailLevel1;
 				} else if (planetLives[i] == 2)
 				{
-					planetModel =  models::ModelType::BossDetailLevel2;
-				} else if (planetLives[i] == 2)
+					planetModel[i] =  models::ModelType::BossDetailLevel2;
+				} else if (planetLives[i] == 1)
 				{
-					planetModel =  models::ModelType::BossDetailLevel3;
+                    planetModel[i]  =  models::ModelType::BossDetailLevel3;
 				}
 			}
 			// @TODO: Else, play some kind of shield animation?
@@ -102,13 +103,13 @@ void BossEntity::onCollision(Entity* entity)
 			moonLives[i] -= 1;
 			if (moonLives[i] == 3)
 			{
-				moonModel =  models::ModelType::BossDetailLevel1;
+				moonModel[i] =  models::ModelType::BossDetailLevel1;
 			} else if (moonLives[i] == 2)
 			{
-				moonModel =  models::ModelType::BossDetailLevel2;
-			} else if (moonLives[i] == 2)
+                moonModel[i] =  models::ModelType::BossDetailLevel2;
+			} else if (moonLives[i] == 1)
 			{
-				moonModel =  models::ModelType::BossDetailLevel3;
+                moonModel[i] =  models::ModelType::BossDetailLevel3;
 			}
 		}
 	}
@@ -198,7 +199,7 @@ void BossEntity::draw(long tick, glm::mat4 projView)
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "model"), 1, GL_FALSE, glm::value_ptr(projView));
 
-			models::drawModel(planetModel);	
+			models::drawModel(planetModel[i]);
 		}
 
 		if (moonLives[i] > 0)
@@ -210,7 +211,7 @@ void BossEntity::draw(long tick, glm::mat4 projView)
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "model"), 1, GL_FALSE, glm::value_ptr(projView));
 
-			models::drawModel(moonModel);	
+			models::drawModel(moonModel[i]);
 		}
 	}
 }

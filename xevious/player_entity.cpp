@@ -32,10 +32,10 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
     color = glm::vec3(0.,1.,0.);
 }
 
-void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
+void PlayerEntity::performAction(PlayerAction action, Gamestate* state, double timeDelta)
 {
 	// @TODO: Change movement_amount to be dependent on tick (move actual action to update function)
-	float movement_amount = 0.05;
+	float movement_amount = 1.5 * timeDelta;
 	switch (action)
 	{
 		case PlayerAction::MOVE_FORWARD:
@@ -45,7 +45,6 @@ void PlayerEntity::performAction(PlayerAction action, Gamestate* state)
 			movePlayer(0., movement_amount);
 		break;
 		case PlayerAction::MOVE_LEFT:
-			position.x -= movement_amount;
 			movePlayer(-movement_amount, 0.);
 		break;
 		case PlayerAction::MOVE_RIGHT:

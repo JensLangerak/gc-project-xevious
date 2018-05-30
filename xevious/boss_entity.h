@@ -3,7 +3,7 @@
 #include "entity.h"
 #include "mesh_simplification.h"
 #include "models.h"
-
+#define NUMBER_OF_PLANETS 2
 enum class BossState
 {
 	Entering,
@@ -25,8 +25,8 @@ public:
 	void onCollision(Entity* entity);
 private:
 	// ============= Rendering related ============
-	models::ModelType moonModel;
-	models::ModelType planetModel;
+	models::ModelType moonModel[NUMBER_OF_PLANETS];
+	models::ModelType planetModel[NUMBER_OF_PLANETS];
 
 	glm::mat4 getPlanetMatrix(int i);
 	glm::mat4 getMoonSubMatrix(int i);
@@ -50,8 +50,8 @@ private:
 	float stateRunningTime = 0.;
 
 	// @TODO: Reimplement
-	int moonLives[2];
-	int planetLives[2];
+	int moonLives[NUMBER_OF_PLANETS];
+	int planetLives[NUMBER_OF_PLANETS];
 
 	int totalLives = 16;			// 4 lives * 4 heads
 	float bulletCountdown = 2.0;

@@ -173,38 +173,37 @@ void setupDebugging()
 	std::cout << "Xevious: Press P to enable debug mode\n";
 }
 
+bool forwardPressed = false;
+bool leftPressed = false;
+bool rightPressed = false;
+bool downPressed = false;
+bool spacePressed = false;
+bool mousePressed = false;
+
 void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int mods )
 {
 	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
 	// @TEST: Test moving bounding box1
-	if (action != GLFW_PRESS && action != GLFW_REPEAT)
-	{   
-		// @TODO(Berend): change into something more smooth;
-		return;
-	}
 
-	if (key == GLFW_KEY_W)
-	{
-		player->performAction(PlayerAction::MOVE_FORWARD, &gamestate);
-	}
-	else if (key == GLFW_KEY_A)
-	{
-		player->performAction(PlayerAction::MOVE_LEFT, &gamestate);
-	}
-	else if (key == GLFW_KEY_S)
-	{
-		player->performAction(PlayerAction::MOVE_BACKWARD, &gamestate);
-	}
-	else if (key == GLFW_KEY_D)
-	{
-		player->performAction(PlayerAction::MOVE_RIGHT, &gamestate);
-	} else if (key == GLFW_KEY_SPACE)
-	{
-		player->performAction(PlayerAction::SHOOT, &gamestate);
-	} else if (key == GLFW_KEY_Q)
-	{
-		player->performAction(PlayerAction::ROLL, &gamestate);
-	} else if (key == GLFW_KEY_P)
+
+	if (action == GLFW_PRESS || action == GLFW_RELEASE) {
+        bool pressed = action == GLFW_PRESS;
+        if (key == GLFW_KEY_W) {
+            forwardPressed = pressed;
+        } else if (key == GLFW_KEY_A) {
+            leftPressed = pressed;
+        } else if (key == GLFW_KEY_S) {
+            downPressed = pressed;
+        } else if (key == GLFW_KEY_D) {
+            rightPressed = pressed;
+        } else if (key == GLFW_KEY_SPACE) {
+            spacePressed = pressed;
+        } else if (key == GLFW_KEY_Q) {
+      //      player->performAction(PlayerAction::ROLL, &gamestate);
+        }
+    }
+
+	if (key == GLFW_KEY_P)
 	{
 		// Toggle debug mode
 		globals::debugMode = !globals::debugMode;
@@ -218,9 +217,9 @@ void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int
 
 void handleMouseButtons(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (action == GLFW_PRESS || action == GLFW_RELEASE)
     {
-    	player->performAction(PlayerAction::SHOOT, &gamestate);
+        mousePressed = action == GLFW_PRESS;
     }
 }
 
@@ -713,10 +712,26 @@ int main(int argc , char** argv )
 	while (!glfwWindowShouldClose(window)) 
 	{
 		glfwPollEvents();
-		timeStartFrame = timeEndFrame;
+        timeStartFrame = timeEndFrame;
         timeEndFrame = std::chrono::system_clock::now();
 
-		double timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(timeEndFrame - timeStartFrame).count() / 1000.0f;
+        double timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(timeEndFrame - timeStartFrame).count() / 1000.0f;
+
+        if (gamestate.mode == GameMode::Playing) {
+            if (forwardPressed) {
+                player->performAction(PlayerAction::MOVE_FORWARD, &gamestate, timeDelta);
+            } else if (leftPressed) {
+                player->performAction(PlayerAction::MOVE_LEFT, &gamestate, timeDelta);
+            } else if (downPressed) {
+                player->performAction(PlayerAction::MOVE_BACKWARD, &gamestate, timeDelta);
+            } else if (rightPressed) {
+                player->performAction(PlayerAction::MOVE_RIGHT, &gamestate, timeDelta);
+            } else if (spacePressed || mousePressed) {
+                player->performAction(PlayerAction::SHOOT, &gamestate, timeDelta);
+            }
+        }
+
+
 
 		        // std::cout << "FPS: " << 1./timeDelta << std::endl;
 
