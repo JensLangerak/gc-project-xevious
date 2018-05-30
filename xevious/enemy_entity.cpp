@@ -23,6 +23,7 @@ EnemyEntity::EnemyEntity(glm::vec2 pos)
 
 void EnemyEntity::update(double tick, Gamestate* state)
 {
+	Entity::update(tick, state);
 	// @NOTE: What height should the ground be?
 	// While above height alpha, spiral every tick by angular velocity, and decrease height
 	float MOVEMENT_SPEED = 0.005;
@@ -70,6 +71,7 @@ void EnemyEntity::onCollision(Entity* entity)
 	if (entity->type != EntityType::Enemy)
 	{
 		isAlive = false;
-		isCollidable = false;	
+		isCollidable = false;
+		Entity::activateFlash();	
 	}
 }

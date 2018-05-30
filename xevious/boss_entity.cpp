@@ -9,203 +9,188 @@
 #include <iostream>
 #include <utility>
 
-
 #define BULLET_DELAY 0.5
+#define NUMBER_OF_PLANETS 2
+#define PI 3.14
 
 BossEntity::BossEntity()
 {
-	scale = 0.4;
-	radius = 2.;
-	centerOffsets[0] = glm::vec3(1., 0., 0.) * radius;
-	centerOffsets[1] = glm::vec3(-1., 0., 0.) * radius;
-	centerOffsets[2] = glm::vec3(0., 0., 1.) * radius;
-	centerOffsets[3] = glm::vec3(0., 0., -1.) * radius;
+	planetModel = models::ModelType::Dragon;
+	moonModel = models::ModelType::Dragon;
+
+	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
+	{
+		// Set initial angles
+		planetAngles[i] = PI * i;
+		moonAngles[i] = PI/2 * i;
+
+		// Set initial lives
+		planetLives[i] = 4;
+		moonLives[i] = 4;
+	}
 
 	position = glm::vec3(0. ,0., -1.5);
-
+	// position = glm::vec3(0. ,0., 0);
 	// @TODO: Fix to retrieve bounding cube for correct model (generated simple model)
 	retrieveBoundingCube(models::dragon);
 }
 
-// @NOTE: Can be optimized
-glm::mat4 BossEntity::getHeadTransformMatrix(int i)
-{
-	// Offset before rotation
-	glm::mat4 prerotationMatrix = getTranslationMatrix(centerOffsets[i]);
-	glm::mat4 rotationMatrix = getRotationMatrix(orientation.x, orientation.y, orientation.z);
-	glm::mat4 scalingMatrix = getScalingMatrix(scale);
-	glm::mat4 translationMatrix = getTranslationMatrix(position);
 
-	return translationMatrix * scalingMatrix * rotationMatrix * prerotationMatrix;
-}
-
-// @TODO(Dirty): This is ugly, wasted computations
-bool BossEntity::checkCollision(Entity* entity)
+// @NOTE: Perhaps a better way to do this would have been to keep a subtree of entities, and defer rendering / collision detection
+// 			Buuuuut that's not how Entity::draw() is architected right now, so we're gonna have to keep it like this.
+//			Would have prevented us from manually having to overwrite drawDebug() (which is kind of errorprone in itself)
+bool BossEntity::checkCollision(Entity* entity) 
 {
-	// check collision for all four entities
-	for (int i = 0; i < 4; ++i)
+	BoundingBox enemyBox = entity->getProjectedBoundingBox();
+	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 	{
-		if (lives[i] > 0)
+		glm::mat4 planetMatrix = getPlanetMatrix(i);
+
+		// Planets
+		BoundingBox collisionBox = boundingCube.getProjectedBoundingBox(planetMatrix * getScalingMatrix(planetSize));
+		if (planetLives[i] > 0 && collisionBox.checkIntersection(enemyBox))
 		{
-			BoundingBox box = boundingCube.getProjectedBoundingBox(getHeadTransformMatrix(i));
-			if (box.checkIntersection(entity->getProjectedBoundingBox()))
-			{
-				std::cout << "Hit the boss!\n";
-				return true;
-			}	
+			return true;
+		}
+
+		// Moons
+		collisionBox = boundingCube.getProjectedBoundingBox(planetMatrix * getMoonSubMatrix(i) * getScalingMatrix(moonSize));
+		if (moonLives[i] > 0 && collisionBox.checkIntersection(enemyBox))
+		{
+			return true;
 		}
 	}
 	return false;
 }
 
-void BossEntity::onCollision(Entity* entity)
+// @NOTE(Bad): It's super inefficient to have to check for collisions again here
+//				Could have been solved by simply storing the pointer to the collision entity if we kept a subtree
+void BossEntity::onCollision(Entity* entity) 
 {
-	for (int i = 0; i < 4; ++i)
+	// Note: will only be triggered if collision exists
+	BoundingBox enemyBox = entity->getProjectedBoundingBox();
+	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 	{
-		BoundingBox box = boundingCube.getProjectedBoundingBox(getHeadTransformMatrix(i));
-		if (box.checkIntersection(entity->getProjectedBoundingBox()) && lives[i] > 0)
-		{
-			lives[i] -= 1;
-			switch (lives[i])
-			{
-				case 3:
-					models[i] = models::ModelType::BossDetailLevel1;
-				break;
-				case 2:
-					models[i] = models::ModelType::BossDetailLevel2;
-				break; 
-				case 1:
-					models[i] = models::ModelType::BossDetailLevel3;
-				// Mark grey red 
-				break;
-				case 0:
-				default:
-				break;
-			}
+		glm::mat4 planetMatrix = getPlanetMatrix(i);
 
-			totalLives -= 1;
-			if (totalLives == 0)
+		// Planets
+		BoundingBox collisionBox = boundingCube.getProjectedBoundingBox(planetMatrix * getScalingMatrix(planetSize));
+
+		if (collisionBox.checkIntersection(enemyBox))
+		{
+			if (moonLives[i] <= 0)
 			{
-				isAlive = false;
-				isCollidable = 0;
+				planetLives[i] -= 1;
 			}
+			// @TODO: Else, play some kind of shield animation?
 		}
 
+		// Moons
+		collisionBox = boundingCube.getProjectedBoundingBox(planetMatrix * getMoonSubMatrix(i) * getScalingMatrix(moonSize));
+		if (collisionBox.checkIntersection(enemyBox))
+		{
+			moonLives[i] -= 1;
+		}
+	}
+	totalLives -= 1;
+
+	if (totalLives == 0)
+	{
+		std::cout << "Moving into dying state\n";
+		currentState = BossState::Dying; 
 	}
 }
 
-// bubbleSort by z value
-struct LocIndexPair
+void BossEntity::drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor)
 {
-	glm::vec4 location;
-	int index;
-};
-
-void sort(LocIndexPair (&list)[4], int count)
-{
-	for (int i = 0; i < count; ++i)
+	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 	{
-		for (int j = i; j < count; ++j)
+		glm::mat4 planetMatrix = getPlanetMatrix(i);
+		if (planetLives[i] > 0)
 		{
-			if (list[j].location.z > list[i].location.z)
-			{
-				std::swap(list[i], list[j]);
-			}
+			boundingCube.draw(projView *planetMatrix * getScalingMatrix(planetSize), drawColor);	
+		}
+		if (moonLives[i] > 0)
+		{
+			boundingCube.draw(projView * planetMatrix * getMoonSubMatrix(i) * getScalingMatrix(moonSize), drawColor);
 		}
 	}
 }
 
-
-void BossEntity::update(double tick, Gamestate* state )
+glm::mat4 BossEntity::getPlanetMatrix(int i)
 {
-	float angularVelocity = 3.14/2;
-	orientation.y += angularVelocity * tick;
+	// @NOTE: can be made more interesting by not just rotating horizontally
+	glm::mat4 translation = getTranslationMatrix(glm::vec3(planetOffset, 0, 0));
+	glm::mat4 rotation = getRotationMatrix(0, planetAngles[i], 0);
+	glm::mat4 globalTranslation = getTranslationMatrix(position);
+	return globalTranslation * rotation * translation;
+}
 
-	accTime += tick;
-	position.x = sin(accTime * 3.14/3) * 0.7;
-	
-	// First move towards player
-	if (stage == 0)
+glm::mat4 BossEntity::getMoonSubMatrix(int i)
+{
+	glm::mat4 translation = getTranslationMatrix(glm::vec3(moonOffset, 0, 0));
+	glm::mat4 rotation = getRotationMatrix(0, moonAngles[i], 0);
+	return rotation * translation;
+}
+
+
+void BossEntity::update(double tick, Gamestate* state)
+{
+	if (currentState == BossState::Entering)
 	{
-		// move into the stage
-		position.z += 1. * tick;
-
-		if (position.z >= -.5)
+		position.z += 1.0 * tick;
+		if (position.z >= -0.5)
 		{
-			stage = 1;
+			currentState = BossState::Shooting;
 		}
-	} else if (stage == 1)
-	{
-		// Then start attacking / moving
 	}
-
-
-	// @TODO: Implement bullets
-	if (isAlive && bulletStormActive && bulletCountdown <= 0)
+	if (currentState == BossState::Shooting)
 	{
-		// transform * centerOffset  = location
-		LocIndexPair positions[4];
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 		{
-			positions[i].location = getRotationMatrix(0, orientation.y, 0) * glm::vec4(centerOffsets[i], 1.0);
-			positions[i].index = i;
-		}
-		sort(positions, 4);
+			moonAngles[i] += moonVelocity * tick;
+			planetAngles[i] += planetVelocity * tick;
+		}	
+	} else if (currentState == BossState::Dying)
+	{
+		// @TODO: How to die?
+	}
+}
+
+void BossEntity::draw(long tick, glm::mat4 projView)
+{
+	// @TODO: If alive check
+	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
+	{
+		glm::mat4 mvp;
+
+		// @set color
+		glm::vec3 color = glm::vec3(1., 0., 0.);
+		glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(color));
+
+		// Draw planet and moon
+		glm::mat4 planetMatrix = getPlanetMatrix(i);
 		
-		for (int i = 0; i < 4; ++i)
+		if (planetLives[i] > 0)
 		{
-			if (lives[positions[i].index] > 0)
-			{
-				// Shoot from here
-				glm::vec4 bulletLocation = getHeadTransformMatrix(i) * glm::vec4(position, 1.0);
-				// in the direction of the player (for now)
-				glm::vec3 bulletLoc3 = glm::vec3(bulletLocation.x, bulletLocation.y, bulletLocation.z);
-				glm::vec3 bulletDir = state->player->position - bulletLoc3;
-				BulletEntity* bullet = new BulletEntity(bulletLoc3, bulletDir);
-				state->entityList->push_back(bullet);
-				// @TODO: Mark bullet as intended for player!!!
-				break;
-			}
-		}
-
-		bulletCountdown = BULLET_DELAY;
-	} else {
-		bulletCountdown -= tick;
-	}
-
-	// each x seconds, send a bullet from the foremost (living) head towards the player
-	
-	// sort locations by z value (higher is more in front)
-	// for each
-	// if alive -> shoot bullet towards player
-
-
-	// @TODO: Implement death animation and potential win screen
-}
-
-void BossEntity::draw(long tick , glm::mat4 projView)
-{
-	// get mvp matrix by calculating m matrix
-	// Get transformation matrix
-	for (int i = 0; i < 4; ++i)
-	{
-		if (lives[i] > 0)
-		{
-			// @TODO: Decide rendering level on number of lives left
-			glm::mat4 tMatrix = getHeadTransformMatrix(i);
-			glm::mat4 mvp = projView * tMatrix;
+			mvp = projView * planetMatrix * getScalingMatrix(planetSize);
 
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
 			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "model"), 1, GL_FALSE, glm::value_ptr(projView));
-			glm::vec3 color = glm::vec3(1., 0., 0.);
-			glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(color));
 
-			// Draw default entity at location for now
-			models::drawModel(models[i]);
+			models::drawModel(planetModel);	
+		}
+
+		if (moonLives[i] > 0)
+		{	
+			// doing the transformation "stack" by hand here
+			glm::mat4 moonMatrix = planetMatrix * getMoonSubMatrix(i);
+			mvp = projView * moonMatrix * getScalingMatrix(moonSize);
+
+			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
+			glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "model"), 1, GL_FALSE, glm::value_ptr(projView));
+
+			models::drawModel(moonModel);	
 		}
 	}
 }
-
-// @TODO: implement drawBoundingCube();
-// @TODO: fix collision such that on collision with player, the boss becomes invisible for a second or two
-// @TODO: Make movement more unpredictable

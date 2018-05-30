@@ -493,6 +493,7 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 		Entity* e = *it;
 		if (e->canBeRemoved || !e->getProjectedBoundingBox().checkIntersection(gamestate.gamebox)) 
 		{
+			e->uninit();
 			it = entityList->erase(it);
 			delete e;
 		} else {

@@ -64,12 +64,10 @@ void main() {
     vec3 result = diffuse + specular;
     result = result;
 
-    // @TODO: Bullet light (flash) section
+    // @TODO: Bullet light (flash) 
     // @NOTE(WARNING): This is extremely slow
-    // @TODO: change to 2d coordinate comparisons
-
     // float distToBullet = length((lightBulletPos - fragPos).xz);
-    // if (lightBulletPos.x > -5. && lightBulletPos.y > -5.  && lightBulletPos.z > -5. && distToBullet < flashRadius)
+    // if (lightBulletPos.x > -5. && lightBulletPos.y > -5.  && lightBulletPos.z > -5. && distToBullet < 0.4)
     // {
     //     vec3 lBullet = normalize(lightBulletPos - fragPos);
     //     float dBullet = clamp(dot(lBullet, fragNormal), 0, 1);
@@ -77,7 +75,6 @@ void main() {
     //     vec3 hBullet = normalize(lBullet + h);
     //     float psBullet = clamp(dot(fragNormal, hBullet), 0, 1);
     //     vec3 specularBullet = vec3(0.95, 0.05, 0) * pow(psBullet, 16) * exp(-distToBullet);
-
 
     //     result = result + diffuseBullet + specularBullet;        
     // }

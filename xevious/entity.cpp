@@ -4,6 +4,9 @@
 #include "utils.h"
 #include "bounding_box.h"
 
+#define FLASH_DURATION 0.3
+#define PI 3.14
+
 // @TODO: Testing constructor. should probably be removed or changed later
 Entity::Entity() : boundingBox(0, 0, 0, 0)
 {
@@ -44,10 +47,58 @@ glm::mat4 Entity::getTransformationMatrix()
     return model * scaleMatrix;
 }
 
-void Entity::update(double tick , Gamestate* state )
+void Entity::update(double tick , Gamestate* state)
 {
     // @TODO: Figure out if anything needs to be done here
+    if (flashStarted && !isFlashDone())
+    {
+        updateFlash(tick);
+    } else if (isFlashDone())
+    {
+        // Reset light position
+        glm::vec3 resetLight = glm::vec3(-6., -6., -6.);  
+        glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightBulletPos"), 1, glm::value_ptr(resetLight));
+    }
 }
+
+void Entity::uninit()
+{
+    glm::vec3 resetLight = glm::vec3(-6., -6., -6.);  
+    glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightBulletPos"), 1, glm::value_ptr(resetLight));
+}
+
+
+void Entity::activateFlash()
+{
+    flashStarted = true;
+}
+
+void Entity::updateFlash(double tick)
+{
+    flashTime += tick;
+}
+
+void Entity::drawFlash(glm::vec3 offset, float scale)
+{ 
+    if (flashStarted) 
+    {
+        float flashRadius = sin(flashTime * (PI / FLASH_DURATION)) * scale;
+        //glUniform1f(glGetUniformLocation(globals::mainProgram, "flashRadius"), flashRadius);
+
+		GLint loc = glGetUniformLocation(globals::mainProgram, "lightBulletPos");
+	    glm::vec3 lightPos = glm::vec3(offset.x, 3.0, offset.z);
+
+        glUniform3fv(loc, 1, glm::value_ptr(lightPos));
+        //glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightBulletPos"), 1, glm::value_ptr(res));
+		std::cout << "1\n";
+    }
+}
+
+bool Entity::isFlashDone()
+{
+    return flashTime > FLASH_DURATION;
+}
+
 
 void Entity::onCollision(Entity* entity )
 {    
@@ -60,6 +111,8 @@ bool Entity::checkCollision(Entity* entity)
 
 void Entity::draw(long tick , glm::mat4 projView)
 {
+//    Entity::drawFlash(position, scale * 2.0);
+
     glm::mat4 mvp = projView * getTransformationMatrix();
     glm::mat4 modelMatrix = getTransformationMatrix();
     
