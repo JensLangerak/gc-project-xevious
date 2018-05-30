@@ -717,19 +717,19 @@ int main(int argc , char** argv )
 
         double timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(timeEndFrame - timeStartFrame).count() / 1000.0f;
 
-
-        if (forwardPressed) {
-            player->performAction(PlayerAction::MOVE_FORWARD, &gamestate, timeDelta);
-        } else if (leftPressed) {
-            player->performAction(PlayerAction::MOVE_LEFT, &gamestate, timeDelta);
-        } else if (downPressed) {
-            player->performAction(PlayerAction::MOVE_BACKWARD, &gamestate, timeDelta);
-        } else if (rightPressed) {
-            player->performAction(PlayerAction::MOVE_RIGHT, &gamestate, timeDelta);
-        } else if (spacePressed || mousePressed) {
-            player->performAction(PlayerAction::SHOOT, &gamestate, timeDelta);
+        if (player->isAlive) {
+            if (forwardPressed) {
+                player->performAction(PlayerAction::MOVE_FORWARD, &gamestate, timeDelta);
+            } else if (leftPressed) {
+                player->performAction(PlayerAction::MOVE_LEFT, &gamestate, timeDelta);
+            } else if (downPressed) {
+                player->performAction(PlayerAction::MOVE_BACKWARD, &gamestate, timeDelta);
+            } else if (rightPressed) {
+                player->performAction(PlayerAction::MOVE_RIGHT, &gamestate, timeDelta);
+            } else if (spacePressed || mousePressed) {
+                player->performAction(PlayerAction::SHOOT, &gamestate, timeDelta);
+            }
         }
-
 
 
 
