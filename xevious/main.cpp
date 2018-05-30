@@ -392,7 +392,7 @@ void calculateShadowMap(GLuint &framebuffer, Camera & light,  TerrainGenerator &
 	{
 		(*gamestate.entityList)[i]->draw(0, vp);
 	}
-        terrain.drawChunks(0, vp);
+    //    terrain.drawChunks(0, vp);
 
     // Unbind the off-screen framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
