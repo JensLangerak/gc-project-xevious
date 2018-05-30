@@ -35,7 +35,7 @@ struct Gamestate
 	std::vector<BulletEntity*>* bulletList;
 	BoundingBox gamebox = BoundingBox(-1.5, -5.5, 3., 10.);;
 	double aiTimer;
-	double stageTimer = 10.;
+	double stageTimer = 20.;
 	int stage = 0;
 	bool stageReady = false;
 	GameMode mode = GameMode::Playing; // @TODO: switch to Menu once implemented

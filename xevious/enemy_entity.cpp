@@ -29,7 +29,7 @@ void EnemyEntity::update(double tick, Gamestate* state)
 	float MOVEMENT_SPEED = 0.005;
 
 	// IF: NONDEAD
-	if (isAlive)
+	if (lives > 0)
 	{
 		// Move in the direction of player
 		glm::vec3 playerPos = (state->player)->position;
@@ -39,7 +39,7 @@ void EnemyEntity::update(double tick, Gamestate* state)
 		// @TODO: perhaps modify movement with a sine wave, to make behaviour less obvious
 		// @TODO: alternatively, modify movement with random function
 	}
-	else if (!isAlive)
+	else if (lives <= 0)
 	{
 		// (Spiral to the ground)
 		color = glm::vec3(0.6, 0.6, 0.6);
@@ -70,8 +70,12 @@ void EnemyEntity::onCollision(Entity* entity)
 {
 	if (entity->type != EntityType::Enemy)
 	{
-		isAlive = false;
-		isCollidable = false;
+		lives -= 1;
+		if (lives == 0)
+		{
+			isAlive = false;
+			isCollidable = false;
+		}
 		Entity::activateFlash();	
 	}
 }
