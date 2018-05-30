@@ -363,7 +363,7 @@ bool createFramebuffer(GLuint &framebuffer, GLuint texture) {
 	return true;
 }
 
-void calculateShadowMap(GLuint &framebuffer, Camera & light)
+void calculateShadowMap(GLuint &framebuffer, Camera & light,  TerrainGenerator &terrain)
 {
     // Bind the off-screen framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -392,7 +392,7 @@ void calculateShadowMap(GLuint &framebuffer, Camera & light)
 	{
 		(*gamestate.entityList)[i]->draw(0, vp);
 	}
-    //    terrain.draw(0, vp);
+        terrain.drawChunks(0, vp);
 
     // Unbind the off-screen framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -720,7 +720,7 @@ int main(int argc , char** argv )
         terrainGenerator.UpdateChunks(timeDelta);
 
 
-        calculateShadowMap(framebuffer, mainLight);
+        calculateShadowMap(framebuffer, mainLight, terrainGenerator);
 
         //	glfwSwapBuffers(window);
 
