@@ -7,7 +7,7 @@
 #include "bullet_entity.h"
 
 #define PI 3.14
-#define MAX_LIVES 200
+#define MAX_LIVES 20
 
 #define WEAPON_COOLDOWN 0.3
 #define SHIP_SCALE 0.1
