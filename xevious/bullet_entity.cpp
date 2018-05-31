@@ -38,22 +38,6 @@ void BulletEntity::update(double tick, Gamestate* state )
 	position += direction * distance;
 }
 
-void BulletEntity::draw(long tick, glm::mat4 projView)
-{
-    glm::mat4 mvp = projView * getTransformationMatrix();
-    glm::mat4 modelMatrix = getTransformationMatrix();
-    
-    glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-    glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-    
-    glUniform3fv(glGetUniformLocation(globals::mainProgram, "color"), 1, glm::value_ptr(color));
-
-    models::activateTexture(texture);
-
-    models::drawModel(models::ModelType::Bullet);
-
-}
-
 // @TODO: Is this actually called on collision?
 void BulletEntity::onCollision(Entity* entity )
 {
