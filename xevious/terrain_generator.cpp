@@ -19,8 +19,8 @@ TerrainGenerator::TerrainGenerator(double width, double height) :
     InitTerrainBuffers();
 }
 
-const int TERRAIN_WIDTH = 40;
-const int TERRAIN_HEIGHT = 20;
+const int TERRAIN_WIDTH = 80;
+const int TERRAIN_HEIGHT = 40;
 const int TERRAIN_ARRAY_WIDTH = TERRAIN_WIDTH + 2; //need extra for normals;
 const int TERRAIN_ARRAY_HEIGHT = TERRAIN_HEIGHT + 2;
 
