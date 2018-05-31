@@ -26,7 +26,6 @@ const int TERRAIN_ARRAY_HEIGHT = TERRAIN_HEIGHT + 2;
 
 void TerrainGenerator::UpdateChunk(Entity &chunk, bool update)
 {
-    // @NOTE: DIRTY TEMPORARY BAD HACK PLEASE FIX
 
     Vertex vertices[TERRAIN_ARRAY_WIDTH][TERRAIN_ARRAY_HEIGHT];
 

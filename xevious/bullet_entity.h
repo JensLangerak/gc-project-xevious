@@ -9,8 +9,6 @@ class BulletEntity : public Entity
 public:
 	BulletEntity(glm::vec3 pos, glm::vec3 dir);
 	~BulletEntity();
-	// ============= Gameplay related ============
-	void draw(long tick, glm::mat4 projView);
 
 	// ============= Gameplay related ============
 	void update(double tick, Gamestate* state);
