@@ -12,7 +12,6 @@ enum class PlayerAction
 	MOVE_LEFT,
 	MOVE_RIGHT,
 	MOVE_BACKWARD,
-	ROLL,
 	SHOOT
 };
 

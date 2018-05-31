@@ -49,11 +49,10 @@ private:
 	BossState currentState = BossState::Entering;
 	float stateRunningTime = 0.;
 
-	// @TODO: Reimplement
 	int moonLives[NUMBER_OF_PLANETS];
 	int planetLives[NUMBER_OF_PLANETS];
 
-	int totalLives = 17;			// 4 lives * 4 heads
+	int totalLives = 17;
 	float bulletCountdown = 2.0;
 	bool bulletStormActive = true;
 	int nextShooter = 0;

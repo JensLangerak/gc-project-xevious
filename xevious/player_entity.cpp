@@ -7,9 +7,13 @@
 #include "bullet_entity.h"
 
 #define PI 3.14
-#define MAX_LIVES 20
+#define MAX_LIVES 200
 
 #define WEAPON_COOLDOWN 0.3
+#define SHIP_SCALE 0.1
+#define WEAPON_SCALE 0.1
+
+
 
 // @NOTE: Default constructor to set up gamestate conveniently. Probably a bad idea
 PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
@@ -18,14 +22,14 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 	retrieveBoundingCube(models::playerShip);
 	shipModel = models::ModelType::PlayerShip;
 	weaponModel = models::ModelType::PlayerGun;
-	shipScale = 0.1;
-	weaponScale = 0.1;
+	shipScale = SHIP_SCALE;
+	weaponScale = WEAPON_SCALE;
 	weaponAngle = 0;
-	// @NOTE: Also needs to be transformed into world space
 	relativeLocWeapon = glm::vec3(0., 1.0, 0.);
-	type = EntityType::Player;
+	
 
 	// -------------- Gameplay section ------------------
+	type = EntityType::Player;
 	lives = MAX_LIVES;
 	weaponCooldown = WEAPON_COOLDOWN;
 	weaponReady = true;
@@ -34,24 +38,20 @@ PlayerEntity::PlayerEntity() : Entity(glm::vec3(1., 0., 0.))
 
 void PlayerEntity::performAction(PlayerAction action, Gamestate* state, double timeDelta)
 {
-	// @TODO: Change movement_amount to be dependent on tick (move actual action to update function)
-	float movement_amount = 1.5 * timeDelta;
+	float movementAmount = 1.5 * timeDelta;
 	switch (action)
 	{
 		case PlayerAction::MOVE_FORWARD:
-			movePlayer(0., -movement_amount);
+			movePlayer(0., -movementAmount);
 		break;
 		case PlayerAction::MOVE_BACKWARD:
-			movePlayer(0., movement_amount);
+			movePlayer(0., movementAmount);
 		break;
 		case PlayerAction::MOVE_LEFT:
-			movePlayer(-movement_amount, 0.);
+			movePlayer(-movementAmount, 0.);
 		break;
 		case PlayerAction::MOVE_RIGHT:
-			movePlayer(movement_amount, 0.);
-		break;
-		case PlayerAction::ROLL:
-			// @TODO: Implement "Start animation which is carried out in update"
+			movePlayer(movementAmount, 0.);
 		break;
 		case PlayerAction::SHOOT:
 			// Spawn new entity and set direction

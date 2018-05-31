@@ -29,7 +29,6 @@ BoundingBox::~BoundingBox()
 {
 }
 
-// @TODO: Once testing is finished, this can probably be removed
 void BoundingBox::draw(glm::mat4 projView)
 {
 	float HEIGHT_VALUE = 0.5;
@@ -44,7 +43,7 @@ void BoundingBox::draw(glm::mat4 projView, glm::vec3 drawColor)
 
 void BoundingBox::draw(glm::mat4 projView, glm::vec3 drawColor, float height)
 {
-	// @NOTE: Assuming that origin is in topleft corner of screen, and both axis grow positive
+	// Assuming that origin is in topleft corner of screen, and both axis grow positive
 	// 1. Create vertex array
 	Vertex vTopLeft = {};
 	vTopLeft.pos = {topLeft.x , height, -topLeft.y};
@@ -82,16 +81,10 @@ void BoundingBox::draw(glm::mat4 projView, glm::vec3 drawColor, float height)
 
 bool BoundingBox::checkIntersection(BoundingBox other)
 {
-	// return !(this->topLeft.x + this->dimensions.x < other.topLeft.x
-	// 		|| this->topLeft.x > other.topLeft.x + this->dimensions.x
-	// 		|| this->topLeft.y + this->dimensions.y < other.topLeft.y
-	// 		|| this->topLeft.y > other.topLeft.y + this->dimensions.y);
-
 	return !(this->topLeft.x + this->dimensions.x < other.topLeft.x
 			|| other.topLeft.x + other.dimensions.x < this->topLeft.x
 			|| this->topLeft.y + this->dimensions.y < other.topLeft.y
 			|| other.topLeft.y + other.dimensions.y < this->topLeft.y);
-
 
 	// Box is either to the left, right, bottom or top if the box does not intersect
 	// to the left: rightmost edge is to the left of left edge
@@ -105,12 +98,6 @@ void BoundingBox::print()
 				<< dimensions.x << ", " << dimensions.y << std::endl << std::endl;
 
 }
-
-
-
-
-
-
 
 BoundingCube::BoundingCube()
 {
@@ -126,7 +113,6 @@ BoundingCube::BoundingCube(glm::vec3 farBottomLeft, glm::vec3 dimensions)
 	this->farBottomLeft = farBottomLeft;
 	this->dimensions = dimensions;
 }
-
 
 void BoundingCube::draw(glm::mat4 projViewModel)
 {
@@ -173,8 +159,6 @@ void BoundingCube::draw(glm::mat4 projViewModel, glm::vec3 drawColor)
 	Vertex vertexList[8] = {vNearBottomLeft, vNearBottomRight, vFarBottomRight, vFarBottomLeft, 
 							vNearTopLeft, vNearTopRight, vFarTopRight, vFarTopLeft};
 
-	// @TODO: Let's do 2 simple rings for now (no vertical edges)
-
 	// 2. Load vertex data into buffer object
 	glBindBuffer(GL_ARRAY_BUFFER, globals::boundingBoxVBO);
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(Vertex), vertexList, GL_STATIC_DRAW);
@@ -192,15 +176,12 @@ void BoundingCube::draw(glm::mat4 projViewModel, glm::vec3 drawColor)
 }
 
 
-
-//@DEBUG: Method for printing the basic information of a bounding box;
 void BoundingCube::print()
 {
 	std::cout << "BoundingBox pos: " << farBottomLeft.x << ", " << farBottomLeft.y << ", " << farBottomLeft.z 
 				<< " dims: " << dimensions.x << ", " << dimensions.y << ", " << dimensions.z << std::endl;  
 }
 
-// @TODO: Implement
 /* Rotates the bounding cube by the given orientation, and provides a BoundingBox
  *	That indicates the ground area that bounding cube would cover 
  *  (occluded view when viewing from orthographic top perspective)

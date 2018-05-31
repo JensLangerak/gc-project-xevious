@@ -15,8 +15,6 @@
 
 BossEntity::BossEntity()
 {
-
-
 	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 	{
 		planetModel[i] = models::ModelType::Dragon;
@@ -93,7 +91,6 @@ void BossEntity::onCollision(Entity* entity)
                     planetModel[i]  =  models::ModelType::BossDetailLevel3;
 				}
 			}
-			// @TODO: Else, play some kind of shield animation?
 		}
 
 		// Moons
@@ -140,7 +137,6 @@ void BossEntity::drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor)
 
 glm::mat4 BossEntity::getPlanetMatrix(int i)
 {
-	// @NOTE: can be made more interesting by not just rotating horizontally
 	glm::mat4 translation = getTranslationMatrix(glm::vec3(planetOffset, 0, 0));
 	glm::mat4 rotation = getRotationMatrix(0, planetAngles[i], 0);
 	glm::mat4 globalTranslation = getTranslationMatrix(position);
@@ -157,7 +153,6 @@ glm::mat4 BossEntity::getMoonSubMatrix(int i)
 
 void BossEntity::update(double tick, Gamestate* state)
 {
-
 	if (currentState == BossState::Entering)
 	{
 		position.z += 1.0 * tick;
@@ -205,7 +200,6 @@ void BossEntity::update(double tick, Gamestate* state)
 
 void BossEntity::draw(long tick, glm::mat4 projView)
 {
-	// @TODO: If alive check
 	for (int i = 0; i < NUMBER_OF_PLANETS; ++i)
 	{
 		glm::mat4 mvp;

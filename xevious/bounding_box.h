@@ -8,7 +8,6 @@
 class BoundingBox
 {
 public:
-	//BoundingBox();
 	BoundingBox(double x, double y, double width, double height);
 	BoundingBox(BoundingBox box, glm::vec2 translation);
 	~BoundingBox();
@@ -16,12 +15,10 @@ public:
 	bool checkIntersection(BoundingBox other);
 
 	void draw(glm::mat4 projView, glm::vec3 color, float height);
-	// @NOTE: Can probably be removed later
 	void draw(glm::mat4 projView, glm::vec3 color);
-	void draw(glm::mat4 projView); // @NOTE: This may need a transformation matrix to be able to succeed
+	void draw(glm::mat4 projView); 
 
 	void print();
-	// @TEST: After debugging, this should be moved into protected
 	glm::vec2 topLeft;
 	glm::vec2 dimensions;
 };

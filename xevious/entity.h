@@ -41,7 +41,6 @@ public:
     // ============= Rendering related ============
     virtual void draw(long tick, glm::mat4 projView);
     virtual void drawBoundingCube(glm::mat4 projView, glm::vec3 drawColor);    
-    void uninit();
     
     glm::vec3 orientation;
     glm::vec3 position;
@@ -67,22 +66,10 @@ public:
     BoundingBox boundingBox;
     // ============= Debug related ==================
     bool debugIsColliding = false;
-protected:    
-    // Rendering effects
-    void activateFlash();
-    void updateFlash(double tick);
-    void drawFlash(glm::vec3 offset, float scale);
-    bool isFlashDone();
-    bool flashStarted = false;
-    float flashTime = 0.;
-
-
+protected:
     // Collision
     glm::vec2 get2DPosition();
-
     glm::mat4 getTransformationMatrix();
-
-    // @NOTE: This is probably a bad idea
 	void retrieveBoundingCube(models::Model model);
 };
 

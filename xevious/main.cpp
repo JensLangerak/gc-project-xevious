@@ -103,7 +103,7 @@ std::string readFile(const std::string& path) {
 	std::ifstream file(path, std::ios::binary);
 	
 	std::stringstream buffer;
-	buffer << file.rdbuf();
+	buffer << file.rdbuf() << "\0";
 
 	return buffer.str();
 }
@@ -169,7 +169,6 @@ void setupDebugging()
 		std::cout << "Press enter to close."; getchar();
 		return;
 	}
-	// @TODO: Perhaps create a destroyDebugging() if necessary
 
 	std::cout << "Xevious: Press P to enable debug mode\n";
 }
@@ -183,10 +182,6 @@ bool mousePressed = false;
 
 void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int mods )
 {
-	// @NOTE: Forward and backward are flipped, because depth grows into -z direction
-	// @TEST: Test moving bounding box1
-
-
 	if (action == GLFW_PRESS || action == GLFW_RELEASE) {
         bool pressed = action == GLFW_PRESS;
         if (key == GLFW_KEY_W) {
@@ -200,7 +195,6 @@ void handleKeyboard(GLFWwindow* window , int key, int scancode , int action, int
         } else if (key == GLFW_KEY_SPACE) {
             spacePressed = pressed;
         } else if (key == GLFW_KEY_Q) {
-      //      player->performAction(PlayerAction::ROLL, &gamestate);
         }
     }
 
@@ -245,12 +239,11 @@ void updateMouse(GLFWwindow* window, glm::mat4 vp, Gamestate* gamestate)
 	gamestate->player->weaponAngle = angle + 3.14/2;
 }
 
-void veryObviousAI(Gamestate* state, double delta)
+void updateGameLogic(Gamestate* state, double delta)
 {
 	if (state->stage == 0 && !state->stageReady)
 	{
 		//  ================ Init level stage ================
-		// @TODO: Implement in case the gamestate has been reset
 		state->stageReady = true;
 	} 
 	else if (state->stage == 0 && state->stageReady)
@@ -292,10 +285,6 @@ void veryObviousAI(Gamestate* state, double delta)
 		BossEntity* boss = new BossEntity();
 		state->entityList->push_back(boss);
 		state->stageReady = true;
-	} 
-	else if (state->stage == 1 && state->stageReady)
-	{
-		// Perform boss-fight code
 	}
 }
 
@@ -356,10 +345,10 @@ GLuint createTexture(){
 }
 
 bool createFramebuffer(GLuint &framebuffer, GLuint texture) {
-//////////////////// Create framebuffer for extra texture
+	//  ================ Create framebuffer for extra texture ================
 	glGenFramebuffers(1, &framebuffer);
 
-/////////////////// Set shadow texure as depth buffer for this framebuffer
+	//  ================ Set shadow texure as depth buffer for this framebuffer ================
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -398,7 +387,6 @@ void calculateShadowMap(GLuint &framebuffer, Camera & light,  TerrainGenerator &
 	{
 		(*gamestate.entityList)[i]->draw(0, vp);
 	}
-    //    terrain.drawChunks(0, vp);
 
     // Unbind the off-screen framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -419,9 +407,6 @@ void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vecto
 
 	glm::mat4 vp = camera.vpMatrix();
 
-    //  glUniformMatrix4fv(glGetUniformLocation(mainProgram, "mvp"), 1, GL_FALSE, glm::value_ptr(mvp));
-
-
 	glm::mat4 lightMVP = mainLight.vpMatrix();
 	glUniform3fv(glGetUniformLocation(globals::mainProgram, "lightPos"), 1, glm::value_ptr(mainLight.position));
 	glUniformMatrix4fv(glGetUniformLocation(globals::mainProgram, "lightMVP"), 1, GL_FALSE, glm::value_ptr(lightMVP));
@@ -433,19 +418,17 @@ void render(GLuint texShadow, Camera &camera, vector<Entity*> &entityList, vecto
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // @NOTE: Refactor into section that renders entity list
 	for (vector<Entity*>::iterator it = entityList.begin(); it != entityList.end(); it++)
 	{
 		(*it)->draw(0, vp);
 	}
 
-	terrain.drawChunks(0, vp);
-
-
 	for (vector<BulletEntity*>::iterator it = bulletList.begin(); it != bulletList.end(); it++)
 	{
 		(*it)->draw(0, vp);
 	}
+
+	terrain.drawChunks(0, vp);
 
     // ====================== debug render section =======================
 	if (globals::debugMode)
@@ -491,12 +474,13 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 	vector<Entity*>* entityList = gamestate.entityList;
 	vector<BulletEntity*>* bulletList = gamestate.bulletList; 
 
+	updateMouse(window, camera.vpMatrix(), &gamestate);
+
 	for (vector<Entity*>::iterator it = entityList->begin(); it != entityList->end();)
 	{
 		Entity* e = *it;
 		if (e->canBeRemoved || !e->getProjectedBoundingBox().checkIntersection(gamestate.gamebox)) 
 		{
-			e->uninit();
 			it = entityList->erase(it);
 			delete e;
 		} else {
@@ -540,7 +524,6 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 		Entity* a = *it;
 		Entity* player = gamestate.player;
 
-			// @TODO: Do bullets have the correct bounding cubes?
 		if (a->isCollidable && a != player && a->checkCollision(player)) // @IMPORTANT: order is important because of overloading functions
 		{
 			a->debugIsColliding = true;
@@ -557,11 +540,11 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 			Entity* a = *entityIt;
 			BulletEntity* b = *bulletIt;
 
-			// @TODO(Dirty): Ugly hack to check for player here
+			// Player has already been checked, and thus can be ignored
 			if (a->type != EntityType::Player 
 				&& a->isCollidable 
 				&& b->isCollidable
-					&& a->checkCollision(b))	// @IMPORTANT: order is important because of overloading functions
+					&& a->checkCollision(b))	// @Order is important because of overloaded checkCollision functions
 			{
 				a->debugIsColliding = true;
 				b->debugIsColliding = true;
@@ -572,15 +555,7 @@ void updateGame(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
 	}
 
 	// ====================== Run AI ========================
-	veryObviousAI(&gamestate, timeDelta);
-	// update mouse position
-	updateMouse(window, camera.vpMatrix(), &gamestate);
-}
-
-// @TODO: Implement once menu drawing is done
-void updateMenu(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
-{
-
+	updateGameLogic(&gamestate, timeDelta);
 }
 
 void update(GLFWwindow* window, Gamestate &gamestate, double timeDelta)
@@ -660,10 +635,9 @@ int main(int argc , char** argv )
 
 
 	camera.aspect = WIDTH / (float)HEIGHT;
-	camera.position = glm::vec3(.0f,2.f, -0.0f); //TODO fix should be 0,2,0
+	camera.position = glm::vec3(.0f ,2.f, -0.0f);
 	camera.forward = glm::vec3(0.f, -1.0f, 0.f);
 	camera.up = glm::vec3(0.f,0.f,-1.f);
-	//camera.forward  = -camera.position;
 	camera.useOrthogonal = true;
 	camera.width = 2.3;
 	camera.height = 2.3;
@@ -681,32 +655,19 @@ int main(int argc , char** argv )
 	mainLight.fov = glm::pi<float>() / 70.f; //todo position light
 
     // Enable depth testing
-
 	glEnable(GL_DEPTH_TEST);
 
 	// ================== Setup Gamestate ================
-	// @NOTE(Dirty): This is a dirty dirty hack
 	// Reinitialize player to correctly calculate bounding cube
 	gamestate.player = new PlayerEntity();
 	gamestate.entityList = new std::vector<Entity*>();
 	gamestate.bulletList = new std::vector<BulletEntity*>();
-	// @TODO: Fix?
 	gamestate.gamebox = BoundingBox(-1.5, -5.5, 3., 10.);
 
 	player = gamestate.player;
 	gamestate.entityList->push_back(player);
 
-
-	// @TODO: Make this work on windows (msvc doesn't like nonstandard c++)
-
-	
-//	Entity terrain;
-//	terrain.model = models::ModelType::Terrain;
-//	terrain.texture = models::Textures::Sand;
-//	terrain.position =  glm::vec3(0.,-3.5,0.);
-
     TerrainGenerator terrainGenerator(2.5,2.5/2.);
-
 
     auto timeStartFrame = std::chrono::system_clock::now();
     auto timeEndFrame = std::chrono::system_clock::now();
@@ -736,34 +697,17 @@ int main(int argc , char** argv )
             }
         }
 
-
-
-		        // std::cout << "FPS: " << 1./timeDelta << std::endl;
-
-		// @NOTE: For convenience sake
 		update(window, gamestate, timeDelta);
-
-
         terrainGenerator.UpdateChunks(timeDelta);
 
-
         calculateShadowMap(framebuffer, mainLight, terrainGenerator);
-
-        //	glfwSwapBuffers(window);
-
-//continue;
         render(texShadow, camera, *(gamestate.entityList), *(gamestate.bulletList),terrainGenerator);
-
-        //simple.drawGrid(vp * other.getTransformationMatrix());
         glfwSwapBuffers(window);
-
 
         //sleep();
 	}
-
 	
 	glfwDestroyWindow(window);
-	
 	glfwTerminate();
 	
 	return 0;

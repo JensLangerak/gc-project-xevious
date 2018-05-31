@@ -5,19 +5,18 @@
 
 #define PI 3.14
 #define FLASH_DURATION 0.3
+#define BULLET_SCALE 0.02
 
 BulletEntity::~BulletEntity()
 {
-	
 }
 
 BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 {
-
 	// Rendering
 	color = glm::vec3(1., 1., 1.);
 	texture = models::Textures::Beam1;
-	scale = 0.02;
+	scale = BULLET_SCALE;
 	hasCollided = false;
 	flashRemaining = 0;
 
@@ -27,7 +26,6 @@ BulletEntity::BulletEntity(glm::vec3 pos, glm::vec3 dir)
 	model = models::ModelType::Bullet;
 	boundingCube = models::makeBoundingCube(models::starEnemy.vertices);
 	type = EntityType::Bullet;
-
 }
 
 void BulletEntity::update(double tick, Gamestate* state )
@@ -54,7 +52,6 @@ void BulletEntity::draw(long tick, glm::mat4 projView)
 
 }
 
-// @TODO: Is this actually called on collision?
 void BulletEntity::onCollision(Entity* entity )
 {
 	isAlive = false;
